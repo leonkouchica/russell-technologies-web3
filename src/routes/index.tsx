@@ -30,7 +30,7 @@ function Home() {
         <div className="container-x grid items-center gap-10 pb-10 pt-12 lg:grid-cols-[1fr_1.05fr] lg:pt-16">
           <div>
             <p className="text-xs font-bold uppercase leading-relaxed tracking-[0.18em] text-navy">Digital infrastructure<br />for a smarter tomorrow</p>
-            <h1 className="mt-4 text-4xl font-extrabold leading-[1.05] md:text-[3.6rem]">
+            <h1 className="mt-4 max-w-[34rem] text-4xl font-extrabold leading-[1.05] md:text-[3.4rem]">
               We build the systems behind <span className="text-primary">modern business.</span>
             </h1>
             <p className="mt-6 max-w-lg text-base leading-relaxed text-foreground/75 md:text-lg">

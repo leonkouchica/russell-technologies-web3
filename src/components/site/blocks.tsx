@@ -86,7 +86,7 @@ export function CtaBand({ title = "Let's Build Your Next System", text = "Whethe
     <section className="py-12 lg:py-16">
       <div className="container-x">
         <div className="relative overflow-hidden rounded-3xl bg-primary px-8 py-10 md:px-14">
-          <div className="absolute -left-10 -bottom-16 size-48 rounded-full border-[18px] border-orange/90 border-r-transparent border-t-transparent" aria-hidden />
+          <div className="absolute -left-8 -bottom-20 size-44 rounded-full border-[16px] border-orange" aria-hidden />
           <div className="absolute -right-10 -top-20 size-72 rounded-full bg-navy/30 blur-2xl" aria-hidden />
           <div className="relative flex flex-col items-start justify-between gap-6 md:flex-row md:items-center md:pl-24">
             <div>
