@@ -17,8 +17,8 @@ export function Header() {
         </Link>
         <nav className="hidden items-center gap-7 lg:flex" aria-label="Main">
           <Link to="/" className={linkCls} activeProps={activeCls} activeOptions={{ exact: true }}>Home</Link>
-          <Dropdown label="Services" to="/services" items={services.map((s) => ({ to: `/services/${s.slug}`, label: s.title }))} />
-          <Dropdown label="Products" to="/products" items={products.map((p) => ({ to: `/products/${p.slug}`, label: p.name }))} />
+          <Dropdown label="Services" to="/services" items={services.map((s) => ({ to: "/services/$slug", params: { slug: s.slug }, label: s.title }))} />
+          <Dropdown label="Products" to="/products" items={products.map((p) => ({ to: "/products/$slug", params: { slug: p.slug }, label: p.name }))} />
           <Dropdown label="Company" to="/about" items={[{ to: "/about", label: "About Us" }, { to: "/clients", label: "Clients" }]} />
           <Link to="/blog" className={linkCls} activeProps={activeCls}>Blog</Link>
           <Link to="/contact" className={linkCls} activeProps={activeCls}>Contact</Link>
@@ -33,7 +33,7 @@ export function Header() {
       {open && (
         <div className="border-t border-border bg-background lg:hidden">
           <nav className="container-x flex flex-col gap-1 py-4" onClick={() => setOpen(false)}>
-            {[["/", "Home"], ["/services", "Services"], ["/products", "Products"], ["/about", "About"], ["/clients", "Clients"], ["/blog", "Blog"], ["/contact", "Contact"]].map(([to, l]) => (
+            {([["/", "Home"], ["/services", "Services"], ["/products", "Products"], ["/about", "About"], ["/clients", "Clients"], ["/blog", "Blog"], ["/contact", "Contact"]] as const).map(([to, l]) => (
               <Link key={to} to={to} className="rounded-md px-3 py-2.5 font-semibold text-navy hover:bg-muted">{l}</Link>
             ))}
             <Link to="/contact" className="mt-2 rounded-lg bg-primary px-5 py-3 text-center font-semibold text-primary-foreground">Book a Demo</Link>
@@ -44,7 +44,8 @@ export function Header() {
   );
 }
 
-function Dropdown({ label, to, items }: { label: string; to: string; items: { to: string; label: string }[] }) {
+type Item = { to: "/services/$slug" | "/products/$slug" | "/about" | "/clients"; params?: { slug: string }; label: string };
+function Dropdown({ label, to, items }: { label: string; to: "/services" | "/products" | "/about"; items: Item[] }) {
   return (
     <div className="group relative">
       <Link to={to} className={`${linkCls} inline-flex items-center gap-1`} activeProps={activeCls}>
@@ -53,7 +54,7 @@ function Dropdown({ label, to, items }: { label: string; to: string; items: { to
       <div className="invisible absolute left-1/2 top-full z-50 -translate-x-1/2 pt-3 opacity-0 transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
         <div className="w-56 rounded-xl border border-border bg-popover p-2 shadow-card">
           {items.map((i) => (
-            <Link key={i.to} to={i.to} className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground">{i.label}</Link>
+            <Link key={i.label} to={i.to} params={i.params as never} className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground">{i.label}</Link>
           ))}
         </div>
       </div>

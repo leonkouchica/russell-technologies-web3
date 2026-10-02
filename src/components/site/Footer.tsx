@@ -31,8 +31,8 @@ export function Footer() {
             <button className="shrink-0 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90">Subscribe</button>
           </form>
         </div>
-        <FooterCol title="Services" links={services.map((s) => [`/services/${s.slug}`, s.title])} />
-        <FooterCol title="Products" links={products.map((p) => [`/products/${p.slug}`, p.name])} />
+        <FooterCol title="Services" base="/services/$slug" links={services.map((s) => [s.slug, s.title])} />
+        <FooterCol title="Products" base="/products/$slug" links={products.map((p) => [p.slug, p.name])} />
         <div>
           <h3 className="text-sm font-bold text-navy-foreground">Contact</h3>
           <ul className="mt-4 space-y-3 text-sm text-navy-foreground/70">
@@ -57,13 +57,13 @@ export function Footer() {
   );
 }
 
-function FooterCol({ title, links }: { title: string; links: string[][] }) {
+function FooterCol({ title, base, links }: { title: string; base: "/services/$slug" | "/products/$slug"; links: string[][] }) {
   return (
     <div>
       <h3 className="text-sm font-bold text-navy-foreground">{title}</h3>
       <ul className="mt-4 space-y-3 text-sm text-navy-foreground/70">
         {links.map(([to, l]) => (
-          <li key={to}><Link to={to} className="hover:text-navy-foreground">{l}</Link></li>
+          <li key={to}><Link to={base} params={{ slug: to }} className="hover:text-navy-foreground">{l}</Link></li>
         ))}
       </ul>
     </div>

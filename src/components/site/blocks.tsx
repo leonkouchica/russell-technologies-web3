@@ -29,16 +29,17 @@ export function SectionHead({ eyebrow, title, text, center = true }: { eyebrow: 
   );
 }
 
-export function PrimaryBtn({ to, children }: { to: string; children: ReactNode }) {
+type To = "/contact" | "/services" | "/products" | "/about" | "/blog" | "/clients";
+export function PrimaryBtn({ to, children }: { to: To; children: ReactNode }) {
   return <Link to={to} className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">{children}</Link>;
 }
-export function OutlineBtn({ to, children }: { to: string; children: ReactNode }) {
+export function OutlineBtn({ to, children }: { to: To; children: ReactNode }) {
   return <Link to={to} className="inline-flex items-center gap-2 rounded-lg border border-input bg-background px-6 py-3 text-sm font-semibold text-navy transition hover:border-primary hover:text-primary">{children}</Link>;
 }
 
 export function ServiceCard({ s }: { s: Service }) {
   return (
-    <Link to={`/services/${s.slug}`} className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card transition hover:-translate-y-1">
+    <Link to="/services/$slug" params={{ slug: s.slug }} className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card transition hover:-translate-y-1">
       <img src={s.image} alt={s.title} width={944} height={704} loading="lazy" className="aspect-[4/3] w-full object-cover" />
       <div className="flex flex-1 flex-col p-6">
         <h3 className="text-lg font-bold">{s.title}</h3>
@@ -51,7 +52,7 @@ export function ServiceCard({ s }: { s: Service }) {
 
 export function ProductCard({ p }: { p: Product }) {
   return (
-    <Link to={`/products/${p.slug}`} className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card transition hover:-translate-y-1">
+    <Link to="/products/$slug" params={{ slug: p.slug }} className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-card transition hover:-translate-y-1">
       <img src={p.image} alt={p.name} width={992} height={672} loading="lazy" className="aspect-[3/2] w-full object-cover" />
       <div className="flex flex-1 flex-col p-6">
         <span className="eyebrow">{p.tag}</span>
