@@ -119,12 +119,13 @@ export type Post = {
 };
 
 export const posts: Post[] = [
-  { slug: "digital-transformation-in-african-schools", title: "How Digital Transformation Is Reshaping Schools in Africa", excerpt: "From admissions to report cards, see how schools are saving hours every week with EduPro.", category: "Education", date: "May 12, 2025", read: "5 min read", image: student, author: "Russell Team" },
-  { slug: "technology-for-smallholder-farmers", title: "Technology for Smallholder Farmers: Opening New Markets", excerpt: "Digital marketplaces are helping farmers reach buyers directly and earn more.", category: "Agriculture", date: "May 5, 2025", read: "4 min read", image: farmer, author: "Russell Team" },
-  { slug: "modern-law-firm-operations", title: "Running a Modern Law Firm with Practice Management Software", excerpt: "Why case tracking, billing and client portals belong in one secure platform.", category: "Legal Tech", date: "Apr 28, 2025", read: "6 min read", image: gavel, author: "Russell Team" },
-  { slug: "independent-artists-digital-distribution", title: "Independent Artists and the Rise of Digital Distribution", excerpt: "How creators are reaching global audiences and keeping more of their royalties.", category: "Media", date: "Apr 20, 2025", read: "4 min read", image: artist, author: "Russell Team" },
-  { slug: "data-driven-decisions-with-ai", title: "Making Data-Driven Decisions with Practical AI", excerpt: "Simple ways businesses can use AI and analytics to make smarter decisions today.", category: "AI", date: "Apr 12, 2025", read: "7 min read", image: data, author: "Russell Team" },
-  { slug: "automation-for-growing-businesses", title: "Five Workflows Every Growing Business Should Automate", excerpt: "Cut manual work and errors by automating approvals, reports and notifications.", category: "Automation", date: "Apr 3, 2025", read: "5 min read", image: meeting, author: "Russell Team" },
+  { slug: "technology-transforming-education-in-african-schools", title: "How Technology is Transforming Education in African Schools", excerpt: "Discover how digital tools like EDUPRO are helping schools streamline operations, improve learning outcomes, and empower the next generation.", category: "Education", date: "Sep 10, 2026", read: "8 min read", image: student, author: "Adaeze Johnson" },
+  { slug: "building-stronger-agricultural-value-chains", title: "Building Stronger Agricultural Value Chains in Africa", excerpt: "How digital marketplaces connect farmers, buyers and distributors to unlock fairer prices.", category: "Agriculture", date: "Sep 5, 2026", read: "6 min read", image: farmer, author: "Russell Team" },
+  { slug: "understanding-compliance-for-growing-businesses", title: "Understanding Compliance for Growing Businesses in Africa", excerpt: "A practical guide to the regulations every scaling business should plan for.", category: "Legal", date: "Aug 28, 2026", read: "7 min read", image: gavel, author: "Russell Team" },
+  { slug: "african-artists-reach-global-audiences", title: "How African Artists Can Reach Global Audiences in the Digital Age", excerpt: "Distribution, streaming and fan engagement tools that put creators in control.", category: "Music", date: "Aug 20, 2026", read: "8 min read", image: artist, author: "Russell Team" },
+  { slug: "role-of-data-in-building-smarter-businesses", title: "The Role of Data in Building Smarter Businesses", excerpt: "Simple ways businesses can use data and analytics to make better decisions today.", category: "Technology", date: "Sep 15, 2026", read: "6 min read", image: data, author: "Russell Team" },
+  { slug: "digital-strategies-for-smes-2026", title: "5 Digital Strategies for SMEs to Scale in 2026", excerpt: "Cut manual work, reach more customers and grow with the right digital foundations.", category: "Business", date: "Aug 10, 2026", read: "5 min read", image: meeting, author: "Russell Team" },
+  { slug: "inclusive-learning-opportunities-through-technology", title: "Creating Inclusive Learning Opportunities Through Technology", excerpt: "How schools are using digital tools to reach every learner.", category: "Education", date: "Aug 3, 2026", read: "7 min read", image: classroom, author: "Russell Team" },
 ];
 
 export const metrics = [
@@ -143,8 +144,9 @@ export const testimonials = [
 ];
 
 export const contact = {
-  email: "info@russelltechnologies.com",
-  phone: "+260 97 000 0000",
-  address: "Lusaka, Zambia",
-  hours: "Mon – Fri, 8:00 – 17:00",
+  email: "info@russelltech.com",
+  phone: "+234 812 345 6789",
+  address: "Plot 12, Admiralty Way, Lekki Phase 1, Lagos, Nigeria",
+  city: "Lagos, Nigeria",
+  hours: "Mon – Fri, 9:00 AM – 5:00 PM (WAT)",
 };
