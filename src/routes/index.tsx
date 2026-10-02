@@ -61,14 +61,14 @@ function Home() {
             </div>
           </div>
         </div>
-        <div className="container-x grid grid-cols-2 gap-6 pb-10 pt-6 md:grid-cols-4 lg:max-w-[42rem] lg:ml-[max(0px,calc((100vw-80rem)/2))]">
+        <div className="container-x pb-10 pt-6"><div className="grid max-w-2xl grid-cols-2 gap-6 md:grid-cols-4">
           {([[Boxes, "50+", "Projects Delivered"], [Award, "12", "Industries Served"], [ShieldCheck, "99.9%", "System Uptime"], [Star, "4.9", "Client Rating"]] as const).map(([Icon, v, l]) => (
             <div key={l} className="flex items-center gap-3">
               <Icon className="size-7 shrink-0 text-primary" strokeWidth={1.6} />
               <div><p className="text-lg font-extrabold text-navy">{v}</p><p className="text-[11px] text-muted-foreground">{l}</p></div>
             </div>
           ))}
-        </div>
+        </div></div>
         <div className="border-y border-border bg-background">
           <div className="container-x flex flex-wrap items-center justify-between gap-x-8 gap-y-3 py-5">
             <p className="text-xs font-semibold text-navy">Trusted by forward-thinking companies</p>
