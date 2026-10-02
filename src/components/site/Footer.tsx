@@ -21,7 +21,10 @@ export function Footer() {
             className="mt-6 flex max-w-sm gap-2"
             onSubmit={(e) => {
               e.preventDefault();
-              if (!/^\S+@\S+\.\S+$/.test(email)) return toast.error("Please enter a valid email address.");
+              if (!/^\S+@\S+\.\S+$/.test(email)) {
+                toast.error("Please enter a valid email address.");
+                return;
+              }
               toast.success("Thanks for subscribing!");
               setEmail("");
             }}
@@ -31,8 +34,8 @@ export function Footer() {
             <button className="shrink-0 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90">Subscribe</button>
           </form>
         </div>
-        <FooterCol title="Services" base="/services/$slug" links={services.map((s) => [s.slug, s.title])} />
-        <FooterCol title="Products" base="/products/$slug" links={products.map((p) => [p.slug, p.name])} />
+        <FooterCol title="Services" base="/services/$slug" links={services.map((s) => [s.slug, s.title] as [string, string])} />
+        <FooterCol title="Products" base="/products/$slug" links={products.map((p) => [p.slug, p.name] as [string, string])} />
         <div>
           <h3 className="text-sm font-bold text-navy-foreground">Contact</h3>
           <ul className="mt-4 space-y-3 text-sm text-navy-foreground/70">
@@ -57,7 +60,7 @@ export function Footer() {
   );
 }
 
-function FooterCol({ title, base, links }: { title: string; base: "/services/$slug" | "/products/$slug"; links: string[][] }) {
+function FooterCol({ title, base, links }: { title: string; base: "/services/$slug" | "/products/$slug"; links: [string, string][] }) {
   return (
     <div>
       <h3 className="text-sm font-bold text-navy-foreground">{title}</h3>

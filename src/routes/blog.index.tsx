@@ -14,7 +14,7 @@ function Blog() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("All");
   const cats = ["All", ...new Set(posts.map((p) => p.category))];
-  const featured = posts[0];
+  const featured = posts[0]!;
   const list = useMemo(
     () => posts.filter((p) => (cat === "All" || p.category === cat) && p.title.toLowerCase().includes(q.toLowerCase())),
     [q, cat],

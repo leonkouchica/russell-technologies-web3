@@ -57,10 +57,10 @@ function Contact() {
           >
             <h2 className="text-2xl font-extrabold">Send us a message</h2>
             <div className="mt-6 grid gap-5 sm:grid-cols-2">
-              <Field label="Full name" name="name" error={errors.name}><input id="name" name="name" className={field} /></Field>
-              <Field label="Email" name="email" error={errors.email}><input id="email" name="email" type="email" className={field} /></Field>
+              <Field label="Full name" name="name" error={errors['name']}><input id="name" name="name" className={field} /></Field>
+              <Field label="Email" name="email" error={errors['email']}><input id="email" name="email" type="email" className={field} /></Field>
               <Field label="Phone (optional)" name="phone"><input id="phone" name="phone" className={field} /></Field>
-              <Field label="I'm interested in" name="interest" error={errors.interest}>
+              <Field label="I'm interested in" name="interest" error={errors['interest']}>
                 <select id="interest" name="interest" defaultValue="" className={field}>
                   <option value="" disabled>Select a topic</option>
                   {services.map((s) => <option key={s.slug}>{s.title}</option>)}
@@ -69,7 +69,7 @@ function Contact() {
                 </select>
               </Field>
               <div className="sm:col-span-2">
-                <Field label="Message" name="message" error={errors.message}><textarea id="message" name="message" rows={5} className={field} /></Field>
+                <Field label="Message" name="message" error={errors['message']}><textarea id="message" name="message" rows={5} className={field} /></Field>
               </div>
             </div>
             <button disabled={sending} className="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60">
@@ -82,7 +82,7 @@ function Contact() {
   );
 }
 
-function Field({ label, name, error, children }: { label: string; name: string; error?: string; children: React.ReactNode }) {
+function Field({ label, name, error, children }: { label: string; name: string; error?: string | undefined; children: React.ReactNode }) {
   return (
     <div>
       <label htmlFor={name} className="mb-1.5 block text-sm font-semibold text-navy">{label}</label>
