@@ -81,19 +81,21 @@ export function PostCard({ p }: { p: Post }) {
   );
 }
 
-export function CtaBand({ title = "Ready to transform your business?", text = "Let's talk about how technology can help you grow." }: { title?: string; text?: string }) {
+export function CtaBand({ title = "Let's Build Your Next System", text = "Whether you need a website, an app, automation, or AI — let's create change at scale." }: { title?: string; text?: string }) {
   return (
-    <section className="section-y">
+    <section className="py-12 lg:py-16">
       <div className="container-x">
-        <div className="relative overflow-hidden rounded-3xl bg-navy px-8 py-14 text-center md:px-16">
-          <div className="absolute -right-16 -top-16 size-64 rounded-full bg-primary/30 blur-3xl" aria-hidden />
-          <div className="absolute -bottom-20 -left-10 size-64 rounded-full bg-orange/25 blur-3xl" aria-hidden />
-          <div className="relative">
-            <h2 className="text-3xl font-extrabold text-navy-foreground md:text-4xl">{title}</h2>
-            <p className="mx-auto mt-4 max-w-xl text-navy-foreground/75">{text}</p>
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <PrimaryBtn to="/contact">Book a Demo <ArrowRight className="size-4" /></PrimaryBtn>
-              <Link to="/contact" className="inline-flex items-center rounded-lg border border-navy-foreground/25 px-6 py-3 text-sm font-semibold text-navy-foreground hover:bg-navy-soft">Contact Us</Link>
+        <div className="relative overflow-hidden rounded-3xl bg-primary px-8 py-10 md:px-14">
+          <div className="absolute -left-8 -bottom-20 size-44 rounded-full border-[16px] border-orange" aria-hidden />
+          <div className="absolute -right-10 -top-20 size-72 rounded-full bg-navy/30 blur-2xl" aria-hidden />
+          <div className="relative flex flex-col items-start justify-between gap-6 md:flex-row md:items-center md:pl-24">
+            <div>
+              <h2 className="text-2xl font-extrabold text-primary-foreground md:text-3xl">{title}</h2>
+              <p className="mt-2 max-w-md text-primary-foreground/85">{text}</p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link to="/contact" className="inline-flex items-center gap-2 rounded-lg bg-background px-6 py-3 text-sm font-semibold text-navy hover:bg-background/90">Book a Demo <ArrowRight className="size-4" /></Link>
+              <Link to="/contact" className="inline-flex items-center rounded-lg border border-primary-foreground/50 px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary-foreground/10">Contact Us</Link>
             </div>
           </div>
         </div>
