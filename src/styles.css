@@ -76,6 +76,29 @@
   --shadow-card: 0 1px 2px oklch(0.2 0.06 265 / 6%), 0 8px 24px -12px oklch(0.2 0.06 265 / 14%);
 }
 
+.dark {
+  --background: oklch(0.17 0.04 265);
+  --foreground: oklch(0.94 0.01 255);
+  --card: oklch(0.22 0.05 265);
+  --card-foreground: oklch(0.94 0.01 255);
+  --popover: oklch(0.22 0.05 265);
+  --popover-foreground: oklch(0.94 0.01 255);
+  --secondary: oklch(0.25 0.05 265);
+  --muted: oklch(0.25 0.05 265);
+  --muted-foreground: oklch(0.72 0.03 260);
+  --accent: oklch(0.28 0.07 260);
+  --accent-foreground: oklch(0.85 0.1 258);
+  --border: oklch(0.3 0.05 265);
+  --input: oklch(0.32 0.05 265);
+  --navy: oklch(0.95 0.01 255);
+  --navy-foreground: oklch(0.97 0.01 255);
+  --navy-soft: oklch(0.25 0.06 265);
+  --blue-soft: oklch(0.3 0.08 260);
+  --orange-soft: oklch(0.3 0.06 55);
+  --surface: oklch(0.2 0.045 265);
+}
+.dark .bg-navy { background-color: oklch(0.12 0.04 265); }
+
 @layer base {
   * { border-color: var(--color-border); }
   html { scroll-behavior: smooth; }
