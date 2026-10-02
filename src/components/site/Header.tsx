@@ -13,7 +13,7 @@ export function Header() {
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur">
       <div className="container-x flex h-18 items-center justify-between gap-6 py-3">
         <Link to="/" className="shrink-0" aria-label="Russell Technologies home">
-          <img src={logo} alt="Russell Technologies" width={108} height={40} className="h-10 w-auto" />
+          <img src={logo} alt="Russell Technologies" width={115} height={40} className="h-10 w-auto" />
         </Link>
         <nav className="hidden items-center gap-7 lg:flex" aria-label="Main">
           <Link to="/" className={linkCls} activeProps={activeCls} activeOptions={{ exact: true }}>Home</Link>

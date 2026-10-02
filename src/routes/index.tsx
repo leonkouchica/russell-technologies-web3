@@ -244,12 +244,12 @@ function CaseStudies() {
         <div className="flex items-start gap-4 lg:pr-[22%]">
           <div className="w-full rounded-2xl border border-navy-foreground/10 bg-navy-soft/60 p-6">
             {([[FileCheck2, "Application", "bg-primary"], [ScanLine, "Verification", "bg-primary"], [ShieldCheck, "Approval", "bg-chart-2"], [Bot, "Completion", "bg-chart-2"]] as const).map(([Icon, t, c], k) => (
-              <div key={t} className="flex items-center gap-3">
-                <div className="flex flex-col items-center">
+              <div key={t}>
+                <div className="flex items-center gap-3">
                   <span className={`grid size-10 place-items-center rounded-full ${c} text-primary-foreground`}><Icon className="size-4" /></span>
-                  {k < 3 && <span className="h-6 w-px bg-primary/50" />}
+                  <p className="text-sm font-semibold text-navy-foreground">{t}</p>
                 </div>
-                <p className="-mt-6 text-sm font-semibold text-navy-foreground first:mt-0">{t}</p>
+                {k < 3 && <span className="ml-5 block h-6 w-px bg-primary/50" />}
               </div>
             ))}
           </div>
