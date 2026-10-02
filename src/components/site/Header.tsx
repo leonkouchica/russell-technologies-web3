@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ChevronDown, Menu, X } from "lucide-react";
+import { ArrowRight, ChevronDown, Menu, X } from "lucide-react";
+import { HeaderTools } from "./HeaderTools";
 import logo from "@/assets/logo.png";
 import { products, services } from "@/lib/site-data";
 
@@ -23,9 +24,12 @@ export function Header() {
           <Link to="/blog" className={linkCls} activeProps={activeCls}>Blog</Link>
           <Link to="/contact" className={linkCls} activeProps={activeCls}>Contact</Link>
         </nav>
-        <Link to="/contact" className="hidden rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 lg:inline-flex">
-          Book a Demo
-        </Link>
+        <div className="hidden items-center gap-4 lg:flex">
+          <HeaderTools />
+          <Link to="/contact" className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">
+            Book a Demo <ArrowRight className="size-4" />
+          </Link>
+        </div>
         <button className="rounded-md p-2 text-navy lg:hidden" onClick={() => setOpen(!open)} aria-label="Toggle menu" aria-expanded={open}>
           {open ? <X className="size-6" /> : <Menu className="size-6" />}
         </button>

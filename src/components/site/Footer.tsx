@@ -1,6 +1,7 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
+import logo from "@/assets/logo.png";
 import { useState } from "react";
-import { Facebook, Instagram, Linkedin, Twitter } from "lucide-react";
+import { ArrowUp, Facebook, Instagram, Linkedin, Twitter, Youtube } from "lucide-react";
 import { toast } from "sonner";
 import { products, services } from "@/lib/site-data";
 
@@ -8,9 +9,20 @@ const col = "text-sm text-navy-foreground/65 hover:text-navy-foreground";
 
 export function Footer() {
   const [email, setEmail] = useState("");
+  // Home design shows a compact footer; every other page shows the brand column + back-to-top.
+  const isHome = useLocation({ select: (l) => l.pathname === "/" });
   return (
     <footer className="bg-navy text-navy-foreground">
-      <div className="container-x grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_1fr_1.8fr]">
+      <div className={`container-x grid gap-10 py-14 sm:grid-cols-2 ${isHome ? "lg:grid-cols-[1fr_1fr_1fr_1fr_1.8fr]" : "lg:grid-cols-[1.3fr_1fr_1fr_0.8fr_0.8fr_1.8fr]"}`}>
+        {!isHome && (
+          <div>
+            <img src={logo} alt="Russell Technologies" width={115} height={40} loading="lazy" className="h-10 w-auto brightness-0 invert" />
+            <p className="mt-4 max-w-[12rem] text-sm text-navy-foreground/65">Building digital systems for a smarter tomorrow.</p>
+            <div className="mt-5 flex gap-2">
+              {[Facebook, Instagram, Twitter, Linkedin, Youtube].map((I, i) => <a key={i} href="#" aria-label="Social link" className="grid size-7 place-items-center rounded-full bg-navy-foreground/10 text-navy-foreground hover:bg-primary"><I className="size-3.5" /></a>)}
+            </div>
+          </div>
+        )}
         <div>
           <h3 className="text-sm font-bold text-navy-foreground">Services</h3>
           <ul className="mt-4 space-y-2.5">{services.map((s) => <li key={s.slug}><Link to="/services/$slug" params={{ slug: s.slug }} className={col}>{s.title}</Link></li>)}</ul>
@@ -56,9 +68,13 @@ export function Footer() {
       <div className="border-t border-navy-foreground/10">
         <div className="container-x flex flex-col items-center justify-between gap-3 py-5 text-xs text-navy-foreground/60 sm:flex-row">
           <p>© {new Date().getFullYear()} Russell Technologies. All rights reserved.</p>
-          <div className="flex gap-4">
-            {[Facebook, Instagram, Twitter, Linkedin].map((I, i) => <a key={i} href="#" aria-label="Social link" className="text-navy-foreground/80 hover:text-navy-foreground"><I className="size-4" /></a>)}
-          </div>
+          {isHome ? (
+            <div className="flex gap-4">
+              {[Facebook, Instagram, Twitter, Linkedin].map((I, i) => <a key={i} href="#" aria-label="Social link" className="text-navy-foreground/80 hover:text-navy-foreground"><I className="size-4" /></a>)}
+            </div>
+          ) : (
+            <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="inline-flex items-center gap-1.5 hover:text-navy-foreground">Back to top <ArrowUp className="size-3.5" /></button>
+          )}
         </div>
       </div>
     </footer>

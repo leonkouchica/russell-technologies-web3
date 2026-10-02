@@ -10,6 +10,7 @@ import meeting from "@/assets/meeting.jpg";
 import logo from "@/assets/logo.png";
 import { posts, products, services, testimonials } from "@/lib/site-data";
 import { CtaBand, meta } from "@/components/site/blocks";
+import { BrandLogos } from "@/components/site/kit";
 
 export const Route = createFileRoute("/")({
   head: () => meta("Russell Technologies — We Build the Systems Behind Modern Business", "Websites, mobile apps, automation and AI solutions, plus EduPro, Russell Law, Blueflame and Farmspots."),
@@ -72,7 +73,7 @@ function Home() {
         <div className="border-y border-border bg-background">
           <div className="container-x flex flex-wrap items-center justify-between gap-x-8 gap-y-3 py-5">
             <p className="text-xs font-semibold text-navy">Trusted by forward-thinking companies</p>
-            {["Google", "Microsoft", "aws", "IBM", "shopify", "HubSpot", "Meta"].map((c) => <span key={c} className="text-lg font-bold text-muted-foreground/80">{c}</span>)}
+            <BrandLogos />
           </div>
         </div>
       </section>
