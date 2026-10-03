@@ -1,93 +1,136 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Clock, Mail, MapPin, Phone, Send } from "lucide-react";
-import { toast } from "sonner";
 import { z } from "zod";
-import heroImg from "@/assets/contact-hero.jpg";
-import { contact, products, services } from "@/lib/site-data";
-import { PageHero, meta } from "@/components/site/blocks";
+import { toast } from "sonner";
+import { ArrowRight, Building2, Clock, Mail, MapPin, MessagesSquare, Phone, UsersRound } from "lucide-react";
+import heroImg from "@/assets/contact-agent.jpg";
+import { contact } from "@/lib/site-data";
+import { meta } from "@/components/site/blocks";
+import { BlueCta, Btn, FloatCard, IconBubble, LineEyebrow, SplitHero } from "@/components/site/kit";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 export const Route = createFileRoute("/contact")({
-  head: () => meta("Contact Us — Russell Technologies", "Book a demo or talk to our team about your web, mobile, automation or AI project."),
+  head: () => meta("Contact Us — Russell Technologies", "Talk to Russell Technologies about a project, product demo or partnership. Our team responds within 24 hours."),
   component: Contact,
 });
 
 const schema = z.object({
-  name: z.string().trim().min(2, "Please enter your name").max(100),
-  email: z.string().trim().email("Please enter a valid email").max(255),
+  first: z.string().trim().min(1, "Enter your first name").max(60),
+  last: z.string().trim().min(1, "Enter your last name").max(60),
+  email: z.string().trim().email("Enter a valid email").max(255),
   phone: z.string().trim().max(30).optional(),
-  interest: z.string().min(1, "Please choose a topic"),
-  message: z.string().trim().min(10, "Message should be at least 10 characters").max(2000),
+  org: z.string().trim().max(120).optional(),
+  interest: z.string().optional(),
+  message: z.string().trim().min(10, "Tell us a little more (10+ characters)").max(2000),
 });
 
-const field = "w-full rounded-lg border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring";
+const faqs = [
+  ["How can I request a demo for your products?", "Click “Book a Demo” anywhere on the site or send us a message — we'll schedule a walkthrough within two working days."],
+  ["Do you work with schools and businesses outside Nigeria?", "Yes. We work with clients across Africa and beyond, and support remote onboarding."],
+  ["What services does Russell Technologies offer?", "Web development, mobile applications, automation and AI solutions, plus our EDUPRO, RUSSELL LAW, BLUEFLAME and FARMSPOTS products."],
+  ["How long does it take to get started?", "Most product setups go live in 1–3 weeks. Custom projects start with a discovery call and a clear timeline."],
+  ["Can I get technical support after implementation?", "Yes — every project includes ongoing support, training and maintenance options."],
+];
+
+const field = "w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring";
 
 function Contact() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [sending, setSending] = useState(false);
   return (
     <>
-      <PageHero eyebrow="Contact us" title={<>Let's build something <span className="text-primary">great</span> together</>} text="Tell us about your project or book a free product demo. We usually reply within one business day." image={heroImg} />
-      <section className="section-y">
-        <div className="container-x grid gap-10 lg:grid-cols-[1fr_1.6fr]">
-          <div className="space-y-4">
-            {([[Mail, "Email", contact.email], [Phone, "Phone", contact.phone], [MapPin, "Office", contact.address], [Clock, "Hours", contact.hours]] as const).map(([Icon, t, v]) => (
-              <div key={t} className="flex items-center gap-4 rounded-2xl border border-border bg-card p-5 shadow-card">
-                <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-blue-soft text-primary"><Icon className="size-5" /></div>
-                <div className="min-w-0"><p className="text-sm text-muted-foreground">{t}</p><p className="truncate font-bold text-navy">{v}</p></div>
-              </div>
+      <SplitHero
+        eyebrow="Contact us" title="Let's Build Something Greater" accent="Together." image={heroImg} imageAlt="Russell Technologies support agent"
+        text="Have a question, a project in mind, or want to learn more about our products and services? We'd love to hear from you. Our team is ready to help."
+        actions={<><Btn to="/contact">Book a Demo</Btn><a href="#message" className="inline-flex items-center gap-2 rounded-md border border-primary/60 bg-background px-6 py-3 text-sm font-semibold text-primary hover:bg-blue-soft">Talk to Our Team <ArrowRight className="size-4" /></a></>}
+        card={<FloatCard icon={UsersRound} title="We're Here to Help" text="Our team typically responds within 24 hours." />}
+      />
+
+      <section className="py-10">
+        <div className="container-x">
+          <LineEyebrow>Get in touch</LineEyebrow>
+          <h2 className="mt-2 text-3xl font-extrabold">Choose the Best Way to Reach Us.</h2>
+          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {([[Mail, "Email Us", contact.email, "We'll respond within 24 hours.", "blue", `mailto:${contact.email}`], [Phone, "Call Us", contact.phone, contact.hours, "green", `tel:${contact.phone.replace(/\s/g, "")}`], [MessagesSquare, "Send a Message", "", "Use the contact form below and our team will get back to you.", "purple", "#message"], [Building2, "Visit Our Office", contact.city, "Let's discuss how we can work together.", "orange", "#office"]] as const).map(([I, t, v, d, tone, href]) => (
+              <a key={t} href={href} className="rounded-xl border border-border bg-card p-5 shadow-card transition hover:-translate-y-0.5">
+                <IconBubble icon={I} tone={tone} /><h3 className="mt-3 font-bold">{t}</h3>{v && <p className="text-sm font-semibold text-primary">{v}</p>}<p className="text-sm text-muted-foreground">{d}</p>
+              </a>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="grid bg-surface lg:grid-cols-[1.4fr_1fr]">
+        <div id="message" className="px-5 py-10 md:px-8 lg:pl-[max(2rem,calc((100vw-80rem)/2+2rem))] lg:pr-10">
+          <LineEyebrow>Send us a message</LineEyebrow>
+          <h2 className="mt-2 text-3xl font-extrabold">Tell Us About Your Project.</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Fill out the form below and our team will get back to you as soon as possible.</p>
           <form
             noValidate
-            className="rounded-3xl border border-border bg-card p-6 shadow-card md:p-10"
-            onSubmit={(e) => {
+            className="mt-6 grid gap-4 sm:grid-cols-2"
+            onSubmit={async (e) => {
               e.preventDefault();
               const fd = Object.fromEntries(new FormData(e.currentTarget));
               const r = schema.safeParse(fd);
-              if (!r.success) {
-                setErrors(Object.fromEntries(r.error.issues.map((i) => [i.path[0], i.message])));
-                return;
-              }
-              setErrors({});
-              setSending(true);
-              const form = e.currentTarget;
-              setTimeout(() => { setSending(false); form.reset(); toast.success("Thanks! We'll be in touch shortly."); }, 700);
+              if (!r.success) { const m: Record<string, string> = {}; r.error.issues.forEach((i) => { m[String(i.path[0])] = i.message; }); setErrors(m); return; }
+              setErrors({}); setSending(true);
+              await new Promise((res) => setTimeout(res, 600));
+              setSending(false); e.currentTarget?.reset?.();
+              toast.success("Thanks! Your message has been received — we'll reply within 24 hours.");
             }}
           >
-            <h2 className="text-2xl font-extrabold">Send us a message</h2>
-            <div className="mt-6 grid gap-5 sm:grid-cols-2">
-              <Field label="Full name" name="name" error={errors['name']}><input id="name" name="name" className={field} /></Field>
-              <Field label="Email" name="email" error={errors['email']}><input id="email" name="email" type="email" className={field} /></Field>
-              <Field label="Phone (optional)" name="phone"><input id="phone" name="phone" className={field} /></Field>
-              <Field label="I'm interested in" name="interest" error={errors['interest']}>
-                <select id="interest" name="interest" defaultValue="" className={field}>
-                  <option value="" disabled>Select a topic</option>
-                  {services.map((s) => <option key={s.slug}>{s.title}</option>)}
-                  {products.map((p) => <option key={p.slug}>{p.name} demo</option>)}
-                  <option>Other</option>
-                </select>
-              </Field>
-              <div className="sm:col-span-2">
-                <Field label="Message" name="message" error={errors['message']}><textarea id="message" name="message" rows={5} className={field} /></Field>
-              </div>
+            {([["first", "First Name", "John", true], ["last", "Last Name", "Doe", true], ["email", "Email Address", "john@company.com", true]] as const).map(([n, l, ph, req]) => (
+              <div key={n}><label htmlFor={n} className="text-xs font-semibold text-navy">{l}{req && <span className="text-destructive"> *</span>}</label><input id={n} name={n} type={n === "email" ? "email" : "text"} placeholder={ph} className={`mt-1.5 ${field}`} aria-invalid={!!errors[n]} />{errors[n] && <p className="mt-1 text-xs text-destructive">{errors[n]}</p>}</div>
+            ))}
+            <div><label htmlFor="phone" className="text-xs font-semibold text-navy">Phone Number</label><div className="mt-1.5 flex"><span className="flex items-center rounded-l-md border border-r-0 border-input bg-background px-2 text-sm" aria-hidden>🇳🇬</span><input id="phone" name="phone" type="tel" placeholder="+234 812 345 6789" className={`${field} rounded-l-none`} /></div></div>
+            <div><label htmlFor="org" className="text-xs font-semibold text-navy">Organization / Company</label><input id="org" name="org" placeholder="Your company name" className={`mt-1.5 ${field}`} /></div>
+            <div><label htmlFor="interest" className="text-xs font-semibold text-navy">What are you interested in?</label>
+              <select id="interest" name="interest" defaultValue="" className={`mt-1.5 ${field}`}><option value="" disabled>Select an option</option>{["Web Development", "Mobile Applications", "Automation", "AI Solutions", "EDUPRO", "RUSSELL LAW", "BLUEFLAME", "FARMSPOTS", "Other"].map((o) => <option key={o}>{o}</option>)}</select></div>
+            <div className="sm:col-span-2"><label htmlFor="message-f" className="text-xs font-semibold text-navy">Your Message<span className="text-destructive"> *</span></label><textarea id="message-f" name="message" rows={5} placeholder="Tell us about your project, questions, or how we can help..." className={`mt-1.5 ${field}`} aria-invalid={!!errors.message} />{errors.message && <p className="mt-1 text-xs text-destructive">{errors.message}</p>}</div>
+            <div className="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:items-center">
+              <button disabled={sending} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60">{sending ? "Sending…" : "Send Message"} <ArrowRight className="size-4" /></button>
+              <p className="text-[11px] text-muted-foreground">By submitting this form, you agree to our <span className="font-semibold text-navy">Privacy Policy</span>. We'll never share your information with third parties.</p>
             </div>
-            <button disabled={sending} className="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60">
-              <Send className="size-4" />{sending ? "Sending..." : "Send message"}
-            </button>
           </form>
         </div>
+        <div id="office" className="bg-navy px-5 py-10 md:px-8 lg:pr-[max(2rem,calc((100vw-80rem)/2+2rem))]">
+          <LineEyebrow tone="orange">Our offices</LineEyebrow>
+          <h2 className="mt-2 text-3xl font-extrabold text-navy-foreground">We're Located in Lagos, Nigeria.</h2>
+          <p className="mt-3 text-sm text-navy-foreground/75">Visit our office or get in touch through any of the channels below. We look forward to working with you.</p>
+          <div className="mt-5 overflow-hidden rounded-xl">
+            <iframe title="Russell Technologies office map" src="https://www.openstreetmap.org/export/embed.html?bbox=3.43%2C6.42%2C3.49%2C6.46&layer=mapnik&marker=6.4400%2C3.4600" className="h-48 w-full border-0" loading="lazy" />
+          </div>
+          <div className="mt-6 flex gap-3"><div className="grid size-10 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground"><MapPin className="size-5" /></div><div><h3 className="font-bold text-navy-foreground">Head Office</h3><p className="text-xs text-navy-foreground/75">Russell Technologies<br />{contact.address}</p></div></div>
+          <div className="mt-6 grid grid-cols-1 gap-4 text-xs text-navy-foreground/80 sm:grid-cols-3">
+            <div><Phone className="size-4 text-primary" /><p className="mt-1 font-bold text-navy-foreground">Phone</p>{contact.phone}</div>
+            <div><Mail className="size-4 text-primary" /><p className="mt-1 font-bold text-navy-foreground">Email</p>{contact.email}</div>
+            <div><Clock className="size-4 text-orange" /><p className="mt-1 font-bold text-navy-foreground">Working Hours</p>{contact.hours}</div>
+          </div>
+        </div>
       </section>
-    </>
-  );
-}
 
-function Field({ label, name, error, children }: { label: string; name: string; error?: string | undefined; children: React.ReactNode }) {
-  return (
-    <div>
-      <label htmlFor={name} className="mb-1.5 block text-sm font-semibold text-navy">{label}</label>
-      {children}
-      {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
-    </div>
+      <section className="py-10">
+        <div className="container-x grid gap-8 lg:grid-cols-[1.6fr_1fr]">
+          <div>
+            <div className="flex flex-wrap items-end justify-between gap-3"><div><LineEyebrow>Frequently asked questions</LineEyebrow><h2 className="mt-2 text-3xl font-extrabold">Quick Answers to Common Questions.</h2></div></div>
+            <Accordion type="single" collapsible className="mt-5 space-y-2">
+              {faqs.map(([q, a]) => (
+                <AccordionItem key={q} value={q} className="rounded-lg border border-border bg-card px-4 shadow-card">
+                  <AccordionTrigger className="text-sm font-semibold text-navy hover:no-underline">{q}</AccordionTrigger>
+                  <AccordionContent className="text-sm text-muted-foreground">{a}</AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+          <div className="flex flex-col items-center justify-center rounded-2xl bg-surface p-8 text-center">
+            <div className="relative h-20 w-28"><div className="absolute left-0 top-0 grid h-14 w-20 place-items-center rounded-xl bg-primary text-primary-foreground"><MessagesSquare className="size-7" /></div><div className="absolute bottom-0 right-0 h-12 w-16 rounded-xl bg-orange" /></div>
+            <h3 className="mt-5 text-xl font-extrabold">Still Have Questions?</h3>
+            <p className="mt-2 text-sm text-muted-foreground">Our team is here to help. Reach out to us and we'll get back to you as soon as possible.</p>
+            <Link to="/contact" hash="message" className="mt-5 inline-flex items-center gap-2 rounded-md border border-primary/60 px-6 py-2.5 text-sm font-semibold text-primary hover:bg-blue-soft">Talk to Our Team <ArrowRight className="size-4" /></Link>
+          </div>
+        </div>
+      </section>
+      <div className="pb-10"><BlueCta eyebrow="Let's work together" title="Ready to Transform Your Organization?" text="Whether you're a school, business, or institution, we're ready to help you achieve more with technology." /></div>
+    </>
   );
 }
