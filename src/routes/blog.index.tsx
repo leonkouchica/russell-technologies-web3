@@ -24,6 +24,8 @@ const topics = [
   [Settings, "Technology", "Digital solutions & tools", "blue"], [Building2, "Business Growth", "Strategy, people & impact", "orange"],
 ] as const;
 
+const popularPosts = [posts[0], posts[1], posts[6]].filter((p): p is Post => Boolean(p));
+
 function Card({ p }: { p: Post }) {
   return (
     <Link to="/blog/$slug" params={{ slug: p.slug }} className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-card transition hover:-translate-y-0.5">
@@ -43,7 +45,7 @@ function Card({ p }: { p: Post }) {
 function Subscribe() {
   const [email, setEmail] = useState("");
   return (
-    <form className="mt-4 flex gap-2" onSubmit={(e) => { e.preventDefault(); if (!/^\S+@\S+\.\S+$/.test(email)) return toast.error("Please enter a valid email address."); toast.success("You're subscribed!"); setEmail(""); }}>
+    <form className="mt-4 flex gap-2" onSubmit={(e) => { e.preventDefault(); if (!/^\S+@\S+\.\S+$/.test(email)) { toast.error("Please enter a valid email address."); return; } toast.success("You're subscribed!"); setEmail(""); }}>
       <label htmlFor="blog-email" className="sr-only">Email</label>
       <input id="blog-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email" className="min-w-0 flex-1 rounded-md border border-input bg-background px-3 py-2.5 text-sm" />
       <button className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground">Subscribe <ArrowRight className="size-4" /></button>
@@ -52,9 +54,11 @@ function Subscribe() {
 }
 
 function Blog() {
-  const [featured, ...rest] = posts;
+  const featured = posts[0];
+  const rest = posts.slice(1);
   const [topic, setTopic] = useState<string | null>(null);
-  const latest = topic ? rest.filter((p) => topic.startsWith(p.category) || p.category.startsWith(topic.split(" ")[0]!)) : rest;
+  const latest = topic ? rest.filter((p) => topic.startsWith(p.category) || p.category.startsWith(topic.split(" ")[0] ?? "")) : rest;
+  if (!featured) return null;
   return (
     <>
       <SplitHero
@@ -88,15 +92,15 @@ function Blog() {
         <div className="container-x grid gap-6 lg:grid-cols-[1fr_17rem]">
           <div>
             <LineEyebrow>Featured article</LineEyebrow>
-            <Link to="/blog/$slug" params={{ slug: featured!.slug }} className="group mt-3 grid gap-6 rounded-xl border border-border bg-card p-3 shadow-card md:grid-cols-[1fr_1.1fr]">
-              <img src={featured!.image} alt="" width={896} height={752} className="aspect-[4/3] w-full rounded-lg object-cover" />
+            <Link to="/blog/$slug" params={{ slug: featured.slug }} className="group mt-3 grid gap-6 rounded-xl border border-border bg-card p-3 shadow-card md:grid-cols-[1fr_1.1fr]">
+              <img src={featured.image} alt="" width={896} height={752} className="aspect-[4/3] w-full rounded-lg object-cover" />
               <div className="flex flex-col justify-center p-3">
-                <span className="w-fit rounded bg-blue-soft px-2 py-0.5 text-[11px] font-semibold text-primary">{featured!.category}</span>
-                <h2 className="mt-3 text-2xl font-extrabold leading-tight group-hover:text-primary">{featured!.title}</h2>
-                <p className="mt-3 text-sm text-muted-foreground">{featured!.excerpt}</p>
+                <span className="w-fit rounded bg-blue-soft px-2 py-0.5 text-[11px] font-semibold text-primary">{featured.category}</span>
+                <h2 className="mt-3 text-2xl font-extrabold leading-tight group-hover:text-primary">{featured.title}</h2>
+                <p className="mt-3 text-sm text-muted-foreground">{featured.excerpt}</p>
                 <div className="mt-5 flex items-center gap-3">
                   <img src={av1} alt="" width={512} height={512} loading="lazy" className="size-9 rounded-full object-cover" />
-                  <div className="flex-1"><p className="text-xs font-bold text-navy">By {featured!.author}</p><p className="text-[11px] text-muted-foreground">{featured!.date} · {featured!.read}</p></div>
+                  <div className="flex-1"><p className="text-xs font-bold text-navy">By {featured.author}</p><p className="text-[11px] text-muted-foreground">{featured.date} · {featured.read}</p></div>
                   <span className="grid size-7 place-items-center rounded-full bg-blue-soft text-primary"><ArrowRight className="size-4" /></span>
                 </div>
               </div>
@@ -123,7 +127,7 @@ function Blog() {
             <div className="rounded-xl border border-border bg-card p-5 shadow-card">
               <h3 className="font-bold">Popular Articles</h3>
               <ol className="mt-4 space-y-4">
-                {[posts[0]!, posts[1]!, posts[6]!].map((p, i) => (
+                {popularPosts.map((p, i) => (
                   <li key={p.slug}><Link to="/blog/$slug" params={{ slug: p.slug }} className="flex gap-3 hover:text-primary"><span className="grid size-9 shrink-0 place-items-center rounded-full bg-blue-soft font-bold text-primary">{i + 1}</span><span><span className="block text-sm font-semibold leading-snug">{p.title}</span><span className="text-[11px] text-muted-foreground">{p.date} · {p.read}</span></span></Link></li>
                 ))}
               </ol>
