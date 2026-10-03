@@ -30,7 +30,7 @@ const faqs = [
   ["What services does Russell Technologies offer?", "Web development, mobile applications, automation and AI solutions, plus our EDUPRO, RUSSELL LAW, BLUEFLAME and FARMSPOTS products."],
   ["How long does it take to get started?", "Most product setups go live in 1–3 weeks. Custom projects start with a discovery call and a clear timeline."],
   ["Can I get technical support after implementation?", "Yes — every project includes ongoing support, training and maintenance options."],
-];
+] as const;
 
 const field = "w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring";
 
@@ -86,7 +86,7 @@ function Contact() {
             <div><label htmlFor="org" className="text-xs font-semibold text-navy">Organization / Company</label><input id="org" name="org" placeholder="Your company name" className={`mt-1.5 ${field}`} /></div>
             <div><label htmlFor="interest" className="text-xs font-semibold text-navy">What are you interested in?</label>
               <select id="interest" name="interest" defaultValue="" className={`mt-1.5 ${field}`}><option value="" disabled>Select an option</option>{["Web Development", "Mobile Applications", "Automation", "AI Solutions", "EDUPRO", "RUSSELL LAW", "BLUEFLAME", "FARMSPOTS", "Other"].map((o) => <option key={o}>{o}</option>)}</select></div>
-            <div className="sm:col-span-2"><label htmlFor="message-f" className="text-xs font-semibold text-navy">Your Message<span className="text-destructive"> *</span></label><textarea id="message-f" name="message" rows={5} placeholder="Tell us about your project, questions, or how we can help..." className={`mt-1.5 ${field}`} aria-invalid={!!errors.message} />{errors.message && <p className="mt-1 text-xs text-destructive">{errors.message}</p>}</div>
+            <div className="sm:col-span-2"><label htmlFor="message-f" className="text-xs font-semibold text-navy">Your Message<span className="text-destructive"> *</span></label><textarea id="message-f" name="message" rows={5} placeholder="Tell us about your project, questions, or how we can help..." className={`mt-1.5 ${field}`} aria-invalid={!!errors["message"]} />{errors["message"] && <p className="mt-1 text-xs text-destructive">{errors["message"]}</p>}</div>
             <div className="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:items-center">
               <button disabled={sending} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60">{sending ? "Sending…" : "Send Message"} <ArrowRight className="size-4" /></button>
               <p className="text-[11px] text-muted-foreground">By submitting this form, you agree to our <span className="font-semibold text-navy">Privacy Policy</span>. We'll never share your information with third parties.</p>
