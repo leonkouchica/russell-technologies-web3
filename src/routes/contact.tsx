@@ -51,7 +51,7 @@ function Contact() {
           <LineEyebrow>Get in touch</LineEyebrow>
           <h2 className="mt-2 text-3xl font-extrabold">Choose the Best Way to Reach Us.</h2>
           <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {([[Mail, "Email Us", contact.email, "We'll respond within 24 hours.", "blue", `mailto:${contact.email}`], [Phone, "Call Us", contact.phone, contact.hours, "green", `tel:${contact.phone.replace(/\s/g, "")}`], [MessagesSquare, "Send a Message", "", "Use the contact form below and our team will get back to you.", "purple", "#message"], [Building2, "Visit Our Office", contact.city, "Let's discuss how we can work together.", "orange", "#office"]] as const).map(([I, t, v, d, tone, href]) => (
+            {([[Mail, "Email Us", contact.email, "We'll respond within 24 hours.", "blue", `mailto:${contact.email}`], [Phone, "Call Us", contact.phone, contact.hours ?? "", "green", `tel:${contact.phone.replace(/\s/g, "")}`], [MessagesSquare, "Send a Message", "", "Use the contact form below and our team will get back to you.", "purple", "#message"], [Building2, "Visit Our Office", contact.city, "Let's discuss how we can work together.", "orange", "#office"]] as const).map(([I, t, v, d, tone, href]) => (
               <a key={t} href={href} className="rounded-xl border border-border bg-card p-5 shadow-card transition hover:-translate-y-0.5">
                 <IconBubble icon={I} tone={tone} /><h3 className="mt-3 font-bold">{t}</h3>{v && <p className="text-sm font-semibold text-primary">{v}</p>}<p className="text-sm text-muted-foreground">{d}</p>
               </a>
