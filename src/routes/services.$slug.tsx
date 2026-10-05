@@ -29,6 +29,7 @@ import {
   Zap,
   type LucideIcon,
 } from "lucide-react";
+import type { ReactNode } from "react";
 import {
   siDocker,
   siFigma,
@@ -172,7 +173,7 @@ const details: Record<Service["slug"], Detail> = {
     ],
     capabilitiesEyebrow: "Types of mobile apps", capabilitiesTitle: "Solutions for different business needs.",
     capabilities: [
-      { title: "Customer Apps", text: "Feature-rich experiences for customers.", icon: UsersIcon, tone: "blue", bullets: ["E-Commerce", "Self-service"] },
+      { title: "Customer Apps", text: "Feature-rich experiences for customers.", icon: UserRound, tone: "blue", bullets: ["E-Commerce", "Self-service"] },
       { title: "Internal Business Apps", text: "Tools that improve team productivity.", icon: Layers3, tone: "blue", bullets: ["Team Operations", "Workflows"] },
       { title: "Marketplace Apps", text: "Connect buyers and sellers securely.", icon: MonitorSmartphone, tone: "orange", bullets: ["Marketplace", "Payments"] },
       { title: "On-Demand Apps", text: "Location-based apps for field operations.", icon: Target, tone: "blue", bullets: ["Delivery", "Logistics"] },
@@ -253,10 +254,6 @@ export const Route = createFileRoute("/services/$slug")({
   component: ServiceDetail,
 });
 
-function UsersIcon(props: { className?: string }) {
-  return <UserRound {...props} />;
-}
-
 const toneClasses: Record<Tone, string> = {
   blue: "bg-blue-soft text-primary",
   green: "bg-chart-2/15 text-chart-2",
@@ -264,7 +261,7 @@ const toneClasses: Record<Tone, string> = {
   purple: "bg-chart-4/15 text-chart-4",
 };
 
-function ActionLink({ variant = "solid", children }: { variant?: "solid" | "outline"; children: React.ReactNode }) {
+function ActionLink({ variant = "solid", children }: { variant?: "solid" | "outline"; children: ReactNode }) {
   return (
     <Link to="/contact" className={`inline-flex items-center gap-2 rounded-md px-6 py-3 text-sm font-bold transition ${variant === "solid" ? "bg-primary text-primary-foreground hover:bg-primary/90" : "border border-primary bg-background text-primary hover:bg-blue-soft"}`}>
       {children}<ArrowRight className="size-4" />
