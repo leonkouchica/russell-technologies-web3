@@ -5,5 +5,5 @@
 - [x] Home + Services overview matched to screenshots
 - [x] Match Products, About, Clients, Blog, Contact to their screenshots
 - [x] Match all four service detail pages to their supplied screenshots
-- [ ] Match all four product detail pages to their supplied screenshots
+- [x] Match all four product detail pages to their supplied screenshots
 - [ ] Real contact details (email/phone/address are placeholders)
