@@ -6,5 +6,5 @@
 - [x] Match Products, About, Clients, Blog, Contact to their screenshots
 - [x] Match all four service detail pages to their supplied screenshots
 - [x] Match all four product detail pages to their supplied screenshots
-- [ ] Verify product pages on tablet/mobile and correct CTA/navigation destinations
+- [x] Verify product pages on tablet/mobile and correct CTA/navigation destinations (video/social destinations unavailable)
 - [ ] Real contact details (email/phone/address are placeholders)
