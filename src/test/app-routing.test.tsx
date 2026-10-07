@@ -6,6 +6,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { routeTree } from "@/routeTree.gen";
 
 function renderAt(path: string) {
+  // A document shell cannot mount inside Testing Library's div container.
+  routeTree.update({ shellComponent: ({ children }) => <>{children}</> });
   const queryClient = new QueryClient();
   const router = createRouter({
     routeTree,
