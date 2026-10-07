@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowRight, ChevronDown, Menu, X } from "lucide-react";
 import { HeaderTools } from "./HeaderTools";
+import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.png";
 import { products, services } from "@/lib/site-data";
 
@@ -30,16 +31,19 @@ export function Header() {
             Book a Demo <ArrowRight className="size-4" />
           </Link>
         </div>
-        <button className="rounded-md p-2 text-navy lg:hidden" onClick={() => setOpen(!open)} aria-label="Toggle menu" aria-expanded={open}>
+        <Button variant="ghost" size="icon" className="shrink-0 text-navy lg:hidden" onClick={() => setOpen(!open)} aria-label="Toggle menu" aria-expanded={open}>
           {open ? <X className="size-6" /> : <Menu className="size-6" />}
-        </button>
+        </Button>
       </div>
       {open && (
         <div className="border-t border-border bg-background lg:hidden">
-          <nav className="container-x flex flex-col gap-1 py-4" onClick={() => setOpen(false)}>
+          <nav aria-label="Mobile navigation" className="container-x flex flex-col gap-1 py-4" onClick={() => setOpen(false)}>
             {([["/", "Home"], ["/services", "Services"], ["/products", "Products"], ["/about", "About"], ["/clients", "Clients"], ["/blog", "Blog"], ["/contact", "Contact"]] as const).map(([to, l]) => (
               <Link key={to} to={to} className="rounded-md px-3 py-2.5 font-semibold text-navy hover:bg-muted">{l}</Link>
             ))}
+            <div className="grid grid-cols-2 gap-1 border-y border-border py-2">
+              {products.map((p) => <Link key={p.slug} to="/products/$slug" params={{ slug: p.slug }} className="rounded-md px-3 py-2.5 text-sm font-semibold text-navy hover:bg-muted">{p.name}</Link>)}
+            </div>
             <Link to="/contact" className="mt-2 rounded-lg bg-primary px-5 py-3 text-center font-semibold text-primary-foreground">Book a Demo</Link>
           </nav>
         </div>

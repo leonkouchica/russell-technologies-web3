@@ -7,6 +7,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
+import { Button } from "@/components/ui/button";
 import { products, type Product } from "@/lib/site-data";
 import { LineEyebrow, PillEyebrow } from "@/components/site/kit";
 import { meta } from "@/components/site/blocks";
@@ -64,8 +65,11 @@ export const Route = createFileRoute("/products/$slug")({
   component: ProductDetail,
 });
 
-function Action({ children, outline = false, theme }: { children: ReactNode; outline?: boolean; theme: Theme }) {
-  return <Link to="/contact" className={`inline-flex items-center gap-2 rounded-md border px-6 py-3 text-sm font-bold transition ${outline ? "border-primary bg-background text-primary hover:bg-blue-soft" : `border-transparent ${theme.button}`}`}>{children}<ArrowRight className="size-4" /></Link>;
+function Action({ children, outline = false, theme, section, slug }: { children: ReactNode; outline?: boolean; theme: Theme; section?: string; slug?: ProductSlug }) {
+  const content = <>{children}<ArrowRight className="size-4" /></>;
+  return <Button asChild variant={outline ? "outline" : "default"} className={`h-auto min-h-11 border px-6 py-3 text-sm font-bold ${outline ? "border-primary bg-background text-primary hover:bg-blue-soft" : `border-transparent ${theme.button}`}`}>
+    {section && slug ? <Link to="/products/$slug" params={{ slug }} hash={section}>{content}</Link> : <Link to="/contact" hash="message">{content}</Link>}
+  </Button>;
 }
 
 function ProductDetail() {
@@ -75,24 +79,25 @@ function ProductDetail() {
   const cardIcons = featureIcons[product.slug];
   const steps = processIcons[product.slug];
   const isLaw = product.slug === "russell-law";
+  const nameParts = { edupro: ["EDU", "PRO"], blueflame: ["BLUE", "FLAME"], farmspots: ["FARM", "SPOTS"], "russell-law": ["RUSSELL ", "LAW"] }[product.slug];
 
   return (
     <>
       <section className="relative overflow-hidden bg-surface">
-        <div className="container-x grid min-h-[500px] items-center gap-8 py-12 lg:grid-cols-[0.86fr_1.14fr] lg:py-0">
-          <div className="relative z-10 py-5">
+        <div className="container-x grid min-h-[500px] items-center gap-6 py-8 lg:grid-cols-[0.86fr_1.14fr] lg:gap-8 lg:py-0">
+          <div className="relative z-10 min-w-0 lg:py-5">
             <PillEyebrow>Our product</PillEyebrow>
-            <h1 className="mt-5 text-4xl font-extrabold leading-none md:text-[3.65rem]">{product.displayName.split(" ").map((word, index) => <span key={word} className={index === product.displayName.split(" ").length - 1 ? theme.accent : ""}>{index ? " " : ""}{word}</span>)}</h1>
+            <h1 className="mt-5 text-4xl font-extrabold leading-none md:text-[3.65rem]">{nameParts[0]}<span className={theme.accent}>{nameParts[1]}</span></h1>
             <h2 className="mt-2 text-xl font-extrabold text-navy">{product.heroTitle}</h2>
             <p className="mt-4 max-w-xl text-sm leading-relaxed text-foreground/80">{product.intro}</p>
-            <div className="mt-7 flex flex-wrap gap-3"><Action theme={theme}>Request a Demo</Action><Action theme={theme} outline>Explore Features</Action></div>
+            <div className="mt-7 flex flex-wrap gap-3"><Action theme={theme}>Request a Demo</Action><Action theme={theme} outline section="features" slug={product.slug}>Explore Features</Action></div>
           </div>
-          <div className="relative h-[330px] overflow-hidden rounded-lg lg:h-[500px] lg:rounded-none">
-            <img src={heroes[product.slug]} alt={`${product.displayName} platform`} width={1408} height={928} className="h-full w-full object-cover" />
+          <div className="relative aspect-[1408/928] overflow-hidden rounded-lg lg:aspect-auto lg:h-[500px] lg:rounded-none">
+            <img src={heroes[product.slug]} alt={`${product.displayName} platform`} width={1408} height={928} className="h-full w-full object-contain lg:object-cover" />
             <div className="absolute inset-y-0 left-0 hidden w-28 bg-gradient-to-r from-surface to-transparent lg:block" />
-            <div className="absolute right-5 top-8 rounded-lg bg-card px-5 py-3 shadow-card"><p className={`text-lg font-extrabold ${theme.accent}`}>{product.impact.metrics[0]?.value}</p><p className="text-[11px] text-muted-foreground">{product.impact.metrics[0]?.label}</p></div>
+            <div className="absolute bottom-3 left-3 rounded-lg bg-card px-3 py-2 shadow-card lg:bottom-auto lg:left-auto lg:right-5 lg:top-8 lg:px-5 lg:py-3"><p className={`text-lg font-extrabold ${theme.accent}`}>{product.impact.metrics[0]?.value}</p><p className="text-[11px] text-muted-foreground">{product.impact.metrics[0]?.label}</p></div>
           </div>
-          <div className="grid gap-5 pb-9 sm:grid-cols-2 lg:col-span-2 lg:-mt-24 lg:grid-cols-4 lg:pr-[51%]">
+          <div className="grid gap-5 pb-2 min-[360px]:grid-cols-2 lg:col-span-2 lg:-mt-24 lg:grid-cols-4 lg:pb-9 lg:pr-[51%]">
             {product.heroPoints.map((point, index) => { const Icon = heroIcons[index] ?? CheckCircle2; return <div key={point.title} className="flex gap-3"><span className={`grid size-10 shrink-0 place-items-center rounded-full ${index === 3 ? "bg-orange-soft text-orange" : theme.soft}`}><Icon className="size-5" /></span><div><h3 className="text-xs font-extrabold">{point.title}</h3><p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{point.text}</p></div></div>; })}
           </div>
         </div>
