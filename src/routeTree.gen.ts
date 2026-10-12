@@ -13,12 +13,35 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as ClientsRouteImport } from './routes/clients'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
+import { Route as TermsOfServiceRouteImport } from './routes/terms-of-service'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
+import { Route as AdminCommentsRouteImport } from './routes/admin.comments'
+import { Route as AdminContactsRouteImport } from './routes/admin.contacts'
+import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as AdminMediaRouteImport } from './routes/admin.media'
+import { Route as AdminNewsletterRouteImport } from './routes/admin.newsletter'
+import { Route as AdminProfileRouteImport } from './routes/admin.profile'
+import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as EventsIndexRouteImport } from './routes/events.index'
+import { Route as EventsSlugRouteImport } from './routes/events.$slug'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
 import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
 import { Route as ServicesIndexRouteImport } from './routes/services.index'
 import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
+import { Route as AdminBlogPostsIndexRouteImport } from './routes/admin.blog-posts.index'
+import { Route as AdminBlogPostsIdRouteImport } from './routes/admin.blog-posts.$id'
+import { Route as AdminBlogPostsCreateRouteImport } from './routes/admin.blog-posts.create'
+import { Route as AdminEventsIndexRouteImport } from './routes/admin.events.index'
+import { Route as AdminEventsIdRouteImport } from './routes/admin.events.$id'
+import { Route as AdminEventsCreateRouteImport } from './routes/admin.events.create'
+import { Route as AdminWebPagesIndexRouteImport } from './routes/admin.web-pages.index'
+import { Route as AdminWebPagesIdRouteImport } from './routes/admin.web-pages.$id'
+import { Route as AdminWebPagesEditRouteImport } from './routes/admin.web-pages.edit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,6 +63,66 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
+  id: '/privacy-policy',
+  path: '/privacy-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsOfServiceRoute = TermsOfServiceRouteImport.update({
+  id: '/terms-of-service',
+  path: '/terms-of-service',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
+  id: '/admin/analytics',
+  path: '/admin/analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCommentsRoute = AdminCommentsRouteImport.update({
+  id: '/admin/comments',
+  path: '/admin/comments',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminContactsRoute = AdminContactsRouteImport.update({
+  id: '/admin/contacts',
+  path: '/admin/contacts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/admin/login',
+  path: '/admin/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminMediaRoute = AdminMediaRouteImport.update({
+  id: '/admin/media',
+  path: '/admin/media',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminNewsletterRoute = AdminNewsletterRouteImport.update({
+  id: '/admin/newsletter',
+  path: '/admin/newsletter',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminProfileRoute = AdminProfileRouteImport.update({
+  id: '/admin/profile',
+  path: '/admin/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/admin/settings',
+  path: '/admin/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/admin/users',
+  path: '/admin/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/blog/',
   path: '/blog/',
@@ -48,6 +131,16 @@ const BlogIndexRoute = BlogIndexRouteImport.update({
 const BlogSlugRoute = BlogSlugRouteImport.update({
   id: '/blog/$slug',
   path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventsIndexRoute = EventsIndexRouteImport.update({
+  id: '/events/',
+  path: '/events/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventsSlugRoute = EventsSlugRouteImport.update({
+  id: '/events/$slug',
+  path: '/events/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsIndexRoute = ProductsIndexRouteImport.update({
@@ -70,30 +163,121 @@ const ServicesSlugRoute = ServicesSlugRouteImport.update({
   path: '/services/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminBlogPostsIndexRoute = AdminBlogPostsIndexRouteImport.update({
+  id: '/admin/blog-posts/',
+  path: '/admin/blog-posts/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminBlogPostsIdRoute = AdminBlogPostsIdRouteImport.update({
+  id: '/admin/blog-posts/$id',
+  path: '/admin/blog-posts/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminBlogPostsCreateRoute = AdminBlogPostsCreateRouteImport.update({
+  id: '/admin/blog-posts/create',
+  path: '/admin/blog-posts/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminEventsIndexRoute = AdminEventsIndexRouteImport.update({
+  id: '/admin/events/',
+  path: '/admin/events/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminEventsIdRoute = AdminEventsIdRouteImport.update({
+  id: '/admin/events/$id',
+  path: '/admin/events/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminEventsCreateRoute = AdminEventsCreateRouteImport.update({
+  id: '/admin/events/create',
+  path: '/admin/events/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminWebPagesIndexRoute = AdminWebPagesIndexRouteImport.update({
+  id: '/admin/web-pages/',
+  path: '/admin/web-pages/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminWebPagesIdRoute = AdminWebPagesIdRouteImport.update({
+  id: '/admin/web-pages/$id',
+  path: '/admin/web-pages/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminWebPagesEditRoute = AdminWebPagesEditRouteImport.update({
+  id: '/admin/web-pages/edit',
+  path: '/admin/web-pages/edit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/clients': typeof ClientsRoute
   '/contact': typeof ContactRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
+  '/terms-of-service': typeof TermsOfServiceRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/comments': typeof AdminCommentsRoute
+  '/admin/contacts': typeof AdminContactsRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/admin/media': typeof AdminMediaRoute
+  '/admin/newsletter': typeof AdminNewsletterRoute
+  '/admin/profile': typeof AdminProfileRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/events/$slug': typeof EventsSlugRoute
   '/products/$slug': typeof ProductsSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
+  '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
+  '/events/': typeof EventsIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/services/': typeof ServicesIndexRoute
+  '/admin/blog-posts/$id': typeof AdminBlogPostsIdRoute
+  '/admin/blog-posts/create': typeof AdminBlogPostsCreateRoute
+  '/admin/events/$id': typeof AdminEventsIdRoute
+  '/admin/events/create': typeof AdminEventsCreateRoute
+  '/admin/web-pages/$id': typeof AdminWebPagesIdRoute
+  '/admin/web-pages/edit': typeof AdminWebPagesEditRoute
+  '/admin/blog-posts/': typeof AdminBlogPostsIndexRoute
+  '/admin/events/': typeof AdminEventsIndexRoute
+  '/admin/web-pages/': typeof AdminWebPagesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/clients': typeof ClientsRoute
   '/contact': typeof ContactRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
+  '/terms-of-service': typeof TermsOfServiceRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/comments': typeof AdminCommentsRoute
+  '/admin/contacts': typeof AdminContactsRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/admin/media': typeof AdminMediaRoute
+  '/admin/newsletter': typeof AdminNewsletterRoute
+  '/admin/profile': typeof AdminProfileRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/events/$slug': typeof EventsSlugRoute
   '/products/$slug': typeof ProductsSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
+  '/admin': typeof AdminIndexRoute
   '/blog': typeof BlogIndexRoute
+  '/events': typeof EventsIndexRoute
   '/products': typeof ProductsIndexRoute
   '/services': typeof ServicesIndexRoute
+  '/admin/blog-posts/$id': typeof AdminBlogPostsIdRoute
+  '/admin/blog-posts/create': typeof AdminBlogPostsCreateRoute
+  '/admin/events/$id': typeof AdminEventsIdRoute
+  '/admin/events/create': typeof AdminEventsCreateRoute
+  '/admin/web-pages/$id': typeof AdminWebPagesIdRoute
+  '/admin/web-pages/edit': typeof AdminWebPagesEditRoute
+  '/admin/blog-posts': typeof AdminBlogPostsIndexRoute
+  '/admin/events': typeof AdminEventsIndexRoute
+  '/admin/web-pages': typeof AdminWebPagesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -101,12 +285,35 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/clients': typeof ClientsRoute
   '/contact': typeof ContactRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
+  '/terms-of-service': typeof TermsOfServiceRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/comments': typeof AdminCommentsRoute
+  '/admin/contacts': typeof AdminContactsRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/admin/media': typeof AdminMediaRoute
+  '/admin/newsletter': typeof AdminNewsletterRoute
+  '/admin/profile': typeof AdminProfileRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/events/$slug': typeof EventsSlugRoute
   '/products/$slug': typeof ProductsSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
+  '/admin/': typeof AdminIndexRoute
   '/blog/': typeof BlogIndexRoute
+  '/events/': typeof EventsIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/services/': typeof ServicesIndexRoute
+  '/admin/blog-posts/$id': typeof AdminBlogPostsIdRoute
+  '/admin/blog-posts/create': typeof AdminBlogPostsCreateRoute
+  '/admin/events/$id': typeof AdminEventsIdRoute
+  '/admin/events/create': typeof AdminEventsCreateRoute
+  '/admin/web-pages/$id': typeof AdminWebPagesIdRoute
+  '/admin/web-pages/edit': typeof AdminWebPagesEditRoute
+  '/admin/blog-posts/': typeof AdminBlogPostsIndexRoute
+  '/admin/events/': typeof AdminEventsIndexRoute
+  '/admin/web-pages/': typeof AdminWebPagesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -115,36 +322,105 @@ export interface FileRouteTypes {
     | '/about'
     | '/clients'
     | '/contact'
+    | '/privacy-policy'
+    | '/terms-of-service'
+    | '/admin/analytics'
+    | '/admin/comments'
+    | '/admin/contacts'
+    | '/admin/login'
+    | '/admin/media'
+    | '/admin/newsletter'
+    | '/admin/profile'
+    | '/admin/settings'
+    | '/admin/users'
     | '/blog/$slug'
+    | '/events/$slug'
     | '/products/$slug'
     | '/services/$slug'
+    | '/admin/'
     | '/blog/'
+    | '/events/'
     | '/products/'
     | '/services/'
+    | '/admin/blog-posts/$id'
+    | '/admin/blog-posts/create'
+    | '/admin/events/$id'
+    | '/admin/events/create'
+    | '/admin/web-pages/$id'
+    | '/admin/web-pages/edit'
+    | '/admin/blog-posts/'
+    | '/admin/events/'
+    | '/admin/web-pages/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
     | '/clients'
     | '/contact'
+    | '/privacy-policy'
+    | '/terms-of-service'
+    | '/admin/analytics'
+    | '/admin/comments'
+    | '/admin/contacts'
+    | '/admin/login'
+    | '/admin/media'
+    | '/admin/newsletter'
+    | '/admin/profile'
+    | '/admin/settings'
+    | '/admin/users'
     | '/blog/$slug'
+    | '/events/$slug'
     | '/products/$slug'
     | '/services/$slug'
+    | '/admin'
     | '/blog'
+    | '/events'
     | '/products'
     | '/services'
+    | '/admin/blog-posts/$id'
+    | '/admin/blog-posts/create'
+    | '/admin/events/$id'
+    | '/admin/events/create'
+    | '/admin/web-pages/$id'
+    | '/admin/web-pages/edit'
+    | '/admin/blog-posts'
+    | '/admin/events'
+    | '/admin/web-pages'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/clients'
     | '/contact'
+    | '/privacy-policy'
+    | '/terms-of-service'
+    | '/admin/analytics'
+    | '/admin/comments'
+    | '/admin/contacts'
+    | '/admin/login'
+    | '/admin/media'
+    | '/admin/newsletter'
+    | '/admin/profile'
+    | '/admin/settings'
+    | '/admin/users'
     | '/blog/$slug'
+    | '/events/$slug'
     | '/products/$slug'
     | '/services/$slug'
+    | '/admin/'
     | '/blog/'
+    | '/events/'
     | '/products/'
     | '/services/'
+    | '/admin/blog-posts/$id'
+    | '/admin/blog-posts/create'
+    | '/admin/events/$id'
+    | '/admin/events/create'
+    | '/admin/web-pages/$id'
+    | '/admin/web-pages/edit'
+    | '/admin/blog-posts/'
+    | '/admin/events/'
+    | '/admin/web-pages/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -152,12 +428,35 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   ClientsRoute: typeof ClientsRoute
   ContactRoute: typeof ContactRoute
+  PrivacyPolicyRoute: typeof PrivacyPolicyRoute
+  TermsOfServiceRoute: typeof TermsOfServiceRoute
+  AdminAnalyticsRoute: typeof AdminAnalyticsRoute
+  AdminCommentsRoute: typeof AdminCommentsRoute
+  AdminContactsRoute: typeof AdminContactsRoute
+  AdminLoginRoute: typeof AdminLoginRoute
+  AdminMediaRoute: typeof AdminMediaRoute
+  AdminNewsletterRoute: typeof AdminNewsletterRoute
+  AdminProfileRoute: typeof AdminProfileRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminUsersRoute: typeof AdminUsersRoute
   BlogSlugRoute: typeof BlogSlugRoute
+  EventsSlugRoute: typeof EventsSlugRoute
   ProductsSlugRoute: typeof ProductsSlugRoute
   ServicesSlugRoute: typeof ServicesSlugRoute
+  AdminIndexRoute: typeof AdminIndexRoute
   BlogIndexRoute: typeof BlogIndexRoute
+  EventsIndexRoute: typeof EventsIndexRoute
   ProductsIndexRoute: typeof ProductsIndexRoute
   ServicesIndexRoute: typeof ServicesIndexRoute
+  AdminBlogPostsIdRoute: typeof AdminBlogPostsIdRoute
+  AdminBlogPostsCreateRoute: typeof AdminBlogPostsCreateRoute
+  AdminEventsIdRoute: typeof AdminEventsIdRoute
+  AdminEventsCreateRoute: typeof AdminEventsCreateRoute
+  AdminWebPagesIdRoute: typeof AdminWebPagesIdRoute
+  AdminWebPagesEditRoute: typeof AdminWebPagesEditRoute
+  AdminBlogPostsIndexRoute: typeof AdminBlogPostsIndexRoute
+  AdminEventsIndexRoute: typeof AdminEventsIndexRoute
+  AdminWebPagesIndexRoute: typeof AdminWebPagesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -190,6 +489,90 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy-policy': {
+      id: '/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof PrivacyPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms-of-service': {
+      id: '/terms-of-service'
+      path: '/terms-of-service'
+      fullPath: '/terms-of-service'
+      preLoaderRoute: typeof TermsOfServiceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/analytics': {
+      id: '/admin/analytics'
+      path: '/admin/analytics'
+      fullPath: '/admin/analytics'
+      preLoaderRoute: typeof AdminAnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/comments': {
+      id: '/admin/comments'
+      path: '/admin/comments'
+      fullPath: '/admin/comments'
+      preLoaderRoute: typeof AdminCommentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/contacts': {
+      id: '/admin/contacts'
+      path: '/admin/contacts'
+      fullPath: '/admin/contacts'
+      preLoaderRoute: typeof AdminContactsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/admin/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/media': {
+      id: '/admin/media'
+      path: '/admin/media'
+      fullPath: '/admin/media'
+      preLoaderRoute: typeof AdminMediaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/newsletter': {
+      id: '/admin/newsletter'
+      path: '/admin/newsletter'
+      fullPath: '/admin/newsletter'
+      preLoaderRoute: typeof AdminNewsletterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/profile': {
+      id: '/admin/profile'
+      path: '/admin/profile'
+      fullPath: '/admin/profile'
+      preLoaderRoute: typeof AdminProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/admin/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/admin/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/blog/': {
       id: '/blog/'
       path: '/blog'
@@ -202,6 +585,20 @@ declare module '@tanstack/react-router' {
       path: '/blog/$slug'
       fullPath: '/blog/$slug'
       preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/events/': {
+      id: '/events/'
+      path: '/events'
+      fullPath: '/events/'
+      preLoaderRoute: typeof EventsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/events/$slug': {
+      id: '/events/$slug'
+      path: '/events/$slug'
+      fullPath: '/events/$slug'
+      preLoaderRoute: typeof EventsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/products/': {
@@ -232,6 +629,69 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ServicesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/blog-posts/': {
+      id: '/admin/blog-posts/'
+      path: '/admin/blog-posts'
+      fullPath: '/admin/blog-posts/'
+      preLoaderRoute: typeof AdminBlogPostsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/blog-posts/$id': {
+      id: '/admin/blog-posts/$id'
+      path: '/admin/blog-posts/$id'
+      fullPath: '/admin/blog-posts/$id'
+      preLoaderRoute: typeof AdminBlogPostsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/blog-posts/create': {
+      id: '/admin/blog-posts/create'
+      path: '/admin/blog-posts/create'
+      fullPath: '/admin/blog-posts/create'
+      preLoaderRoute: typeof AdminBlogPostsCreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/events/': {
+      id: '/admin/events/'
+      path: '/admin/events'
+      fullPath: '/admin/events/'
+      preLoaderRoute: typeof AdminEventsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/events/$id': {
+      id: '/admin/events/$id'
+      path: '/admin/events/$id'
+      fullPath: '/admin/events/$id'
+      preLoaderRoute: typeof AdminEventsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/events/create': {
+      id: '/admin/events/create'
+      path: '/admin/events/create'
+      fullPath: '/admin/events/create'
+      preLoaderRoute: typeof AdminEventsCreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/web-pages/': {
+      id: '/admin/web-pages/'
+      path: '/admin/web-pages'
+      fullPath: '/admin/web-pages/'
+      preLoaderRoute: typeof AdminWebPagesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/web-pages/$id': {
+      id: '/admin/web-pages/$id'
+      path: '/admin/web-pages/$id'
+      fullPath: '/admin/web-pages/$id'
+      preLoaderRoute: typeof AdminWebPagesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/web-pages/edit': {
+      id: '/admin/web-pages/edit'
+      path: '/admin/web-pages/edit'
+      fullPath: '/admin/web-pages/edit'
+      preLoaderRoute: typeof AdminWebPagesEditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -240,12 +700,35 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   ClientsRoute: ClientsRoute,
   ContactRoute: ContactRoute,
+  PrivacyPolicyRoute: PrivacyPolicyRoute,
+  TermsOfServiceRoute: TermsOfServiceRoute,
+  AdminAnalyticsRoute: AdminAnalyticsRoute,
+  AdminCommentsRoute: AdminCommentsRoute,
+  AdminContactsRoute: AdminContactsRoute,
+  AdminLoginRoute: AdminLoginRoute,
+  AdminMediaRoute: AdminMediaRoute,
+  AdminNewsletterRoute: AdminNewsletterRoute,
+  AdminProfileRoute: AdminProfileRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
+  AdminUsersRoute: AdminUsersRoute,
   BlogSlugRoute: BlogSlugRoute,
+  EventsSlugRoute: EventsSlugRoute,
   ProductsSlugRoute: ProductsSlugRoute,
   ServicesSlugRoute: ServicesSlugRoute,
+  AdminIndexRoute: AdminIndexRoute,
   BlogIndexRoute: BlogIndexRoute,
+  EventsIndexRoute: EventsIndexRoute,
   ProductsIndexRoute: ProductsIndexRoute,
   ServicesIndexRoute: ServicesIndexRoute,
+  AdminBlogPostsIdRoute: AdminBlogPostsIdRoute,
+  AdminBlogPostsCreateRoute: AdminBlogPostsCreateRoute,
+  AdminEventsIdRoute: AdminEventsIdRoute,
+  AdminEventsCreateRoute: AdminEventsCreateRoute,
+  AdminWebPagesIdRoute: AdminWebPagesIdRoute,
+  AdminWebPagesEditRoute: AdminWebPagesEditRoute,
+  AdminBlogPostsIndexRoute: AdminBlogPostsIndexRoute,
+  AdminEventsIndexRoute: AdminEventsIndexRoute,
+  AdminWebPagesIndexRoute: AdminWebPagesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

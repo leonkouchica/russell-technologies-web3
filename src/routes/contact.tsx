@@ -89,7 +89,7 @@ function Contact() {
             <div className="sm:col-span-2"><label htmlFor="message-f" className="text-xs font-semibold text-navy">Your Message<span className="text-destructive"> *</span></label><textarea id="message-f" name="message" rows={5} placeholder="Tell us about your project, questions, or how we can help..." className={`mt-1.5 ${field}`} aria-invalid={!!errors["message"]} />{errors["message"] && <p className="mt-1 text-xs text-destructive">{errors["message"]}</p>}</div>
             <div className="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:items-center">
               <button disabled={sending} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60">{sending ? "Sending…" : "Send Message"} <ArrowRight className="size-4" /></button>
-              <p className="text-[11px] text-muted-foreground">By submitting this form, you agree to our <span className="font-semibold text-navy">Privacy Policy</span>. We'll never share your information with third parties.</p>
+              <p className="text-[11px] text-muted-foreground">By submitting this form, you agree to our <Link to="/privacy-policy" className="font-semibold text-navy hover:underline">Privacy Policy</Link>. We'll never share your information with third parties.</p>
             </div>
           </form>
         </div>

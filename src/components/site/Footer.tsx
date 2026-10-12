@@ -37,13 +37,17 @@ export function Footer() {
           <ul className="mt-4 space-y-2.5">
             <li><Link to="/about" className={col}>About</Link></li>
             <li><Link to="/clients" className={col}>Clients</Link></li>
+            <li><Link to="/events" className={col}>Events</Link></li>
             <li><Link to="/blog" className={col}>Blog</Link></li>
             <li><Link to="/contact" className={col}>Contact</Link></li>
           </ul>
         </div>
         <div>
           <h3 className="text-sm font-bold text-navy-foreground">Legal</h3>
-          <ul className="mt-4 space-y-2.5 text-sm text-navy-foreground/65"><li>Terms of Service</li><li>Privacy Policy</li></ul>
+          <ul className="mt-4 space-y-2.5 text-sm">
+            <li><Link to="/terms-of-service" className={col}>Terms of Service</Link></li>
+            <li><Link to="/privacy-policy" className={col}>Privacy Policy</Link></li>
+          </ul>
         </div>
         <div>
           <h3 className="text-sm font-bold text-navy-foreground">Subscribe to our newsletter</h3>

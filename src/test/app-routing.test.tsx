@@ -39,4 +39,82 @@ describe("App routing", () => {
 
     await waitFor(() => expect(container.firstChild).not.toBeNull());
   });
+
+  it("renders the admin overview route", async () => {
+    const { container } = renderAt("/admin");
+
+    await waitFor(() => expect(container.firstChild).not.toBeNull());
+  });
+
+  it("renders the admin blog posts route", async () => {
+    const { container } = renderAt("/admin/blog-posts");
+
+    await waitFor(() => expect(container.firstChild).not.toBeNull());
+  });
+
+  it("renders the admin web pages route", async () => {
+    const { container } = renderAt("/admin/web-pages");
+
+    await waitFor(() => expect(container.firstChild).not.toBeNull());
+  });
+
+  it("renders the admin events route", async () => {
+    const { container } = renderAt("/admin/events");
+
+    await waitFor(() => expect(container.firstChild).not.toBeNull());
+  });
+
+  it("renders the admin newsletter route", async () => {
+    const { container } = renderAt("/admin/newsletter");
+
+    await waitFor(() => expect(container.firstChild).not.toBeNull());
+  });
+
+  it("renders the admin media route", async () => {
+    const { container } = renderAt("/admin/media");
+
+    await waitFor(() => expect(container.firstChild).not.toBeNull());
+  });
+
+  it("renders the admin analytics route", async () => {
+    const { container } = renderAt("/admin/analytics");
+
+    await waitFor(() => expect(container.firstChild).not.toBeNull());
+  });
+
+  it("renders the admin users route", async () => {
+    const { container } = renderAt("/admin/users");
+
+    await waitFor(() => expect(container.firstChild).not.toBeNull());
+  });
+
+  it("renders the privacy policy route", async () => {
+    const { container } = renderAt("/privacy-policy");
+
+    await waitFor(() => expect(container.firstChild).not.toBeNull());
+  });
+
+  it("renders the terms of service route", async () => {
+    const { container } = renderAt("/terms-of-service");
+
+    await waitFor(() => expect(container.firstChild).not.toBeNull());
+  });
+
+  it("renders the public events directory route", async () => {
+    const { container } = renderAt("/events");
+
+    await waitFor(() => expect(container.firstChild).not.toBeNull());
+  });
+
+  it("renders the admin login route", async () => {
+    const { container } = renderAt("/admin/login");
+
+    await waitFor(() => expect(container.firstChild).not.toBeNull());
+  });
+
+  it("renders the admin profile route", async () => {
+    const { container } = renderAt("/admin/profile");
+
+    await waitFor(() => expect(container.firstChild).not.toBeNull());
+  });
 });

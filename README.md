@@ -2,23 +2,34 @@
 
 Implement exactly the screenshot and nothing else
 
-This project was built with [Lovable](https://lovable.dev).
+# Russell Technologies Web Application
 
-## Build with Lovable
+Corporate website and administrative management portal for **Russell Technologies**, featuring enterprise digital products (EduPro, Russell Law, Blueflame, Farmspots), tech services, and full operational admin dashboard.
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/25830411-d8b0-4500-a5bc-7cafc43fa6af).
+## Tech Stack
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+- **Framework**: TanStack Start / React 19 / Vite 8
+- **Styling**: Tailwind CSS & Lucide Icons
+- **Deployment**: Vercel (Nitro Serverless SSR) / Cloudflare / Node
 
 ## Development
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+```bash
+bun install  # or npm install
+bun run dev  # starts Vite dev server
 ```
+
+## Vercel Deployment
+
+This project is prepared for 1-click deployment on [Vercel](https://vercel.com):
+
+1. Push your repository to GitHub.
+2. In the Vercel dashboard, click **Add New > Project** and import `russell-technologies-web3`.
+3. Vercel automatically detects Vite/Nitro.
+   - **Framework Preset**: Other / Vite
+   - **Build Command**: `bun run build` (or `npm run build`)
+   - **Output Directory**: `.output/public` (or automatic Nitro preset)
+4. Set Environment Variable (optional):
+   - `NITRO_PRESET=vercel`
+5. Click **Deploy**.
+

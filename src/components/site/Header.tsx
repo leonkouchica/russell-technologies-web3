@@ -21,7 +21,7 @@ export function Header() {
           <Link to="/" className={linkCls} activeProps={activeCls} activeOptions={{ exact: true }}>Home</Link>
           <Dropdown label="Services" to="/services" items={services.map((s) => ({ to: "/services/$slug", params: { slug: s.slug }, label: s.title }))} />
           <Dropdown label="Products" to="/products" items={products.map((p) => ({ to: "/products/$slug", params: { slug: p.slug }, label: p.name }))} />
-          <Dropdown label="Company" to="/about" items={[{ to: "/about", label: "About Us" }, { to: "/clients", label: "Clients" }]} />
+          <Dropdown label="Company" to="/about" items={[{ to: "/about", label: "About Us" }, { to: "/clients", label: "Clients" }, { to: "/events", label: "Events" }]} />
           <Link to="/blog" className={linkCls} activeProps={activeCls}>Blog</Link>
           <Link to="/contact" className={linkCls} activeProps={activeCls}>Contact</Link>
         </nav>
@@ -38,7 +38,7 @@ export function Header() {
       {open && (
         <div className="border-t border-border bg-background lg:hidden">
           <nav aria-label="Mobile navigation" className="container-x flex flex-col gap-1 py-4" onClick={() => setOpen(false)}>
-            {([["/", "Home"], ["/services", "Services"], ["/products", "Products"], ["/about", "About"], ["/clients", "Clients"], ["/blog", "Blog"], ["/contact", "Contact"]] as const).map(([to, l]) => (
+            {([["/", "Home"], ["/services", "Services"], ["/products", "Products"], ["/about", "About"], ["/clients", "Clients"], ["/events", "Events"], ["/blog", "Blog"], ["/contact", "Contact"]] as const).map(([to, l]) => (
               <Link key={to} to={to} className="rounded-md px-3 py-2.5 font-semibold text-navy hover:bg-muted">{l}</Link>
             ))}
             <div className="grid grid-cols-2 gap-1 border-y border-border py-2">
@@ -52,7 +52,7 @@ export function Header() {
   );
 }
 
-type Item = { to: "/services/$slug" | "/products/$slug" | "/about" | "/clients"; params?: { slug: string }; label: string };
+type Item = { to: "/services/$slug" | "/products/$slug" | "/about" | "/clients" | "/events"; params?: { slug: string }; label: string };
 function Dropdown({ label, to, items }: { label: string; to: "/services" | "/products" | "/about"; items: Item[] }) {
   return (
     <div className="group relative">
