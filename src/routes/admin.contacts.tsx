@@ -10,9 +10,14 @@ import {
   Trash2,
   MoreVertical,
   Reply,
+  Download,
+  FileSpreadsheet,
+  Printer,
 } from "lucide-react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { meta } from "@/components/site/blocks";
+import { exportToCsv, exportToPdf } from "@/lib/export-utils";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/contacts")({
   head: () => meta("Contacts & Inquiries — Admin Dashboard", "Incoming project proposals, strategy requests and messages."),
@@ -73,24 +78,86 @@ function AdminContactsPage() {
   const [replyText, setReplyText] = useState("");
 
   const handleSendReply = () => {
-    alert(`Reply sent to ${selectedInquiry.email}`);
+    toast.success(`Reply sent to ${selectedInquiry.email}`);
     setReplyText("");
     setInquiries(
       inquiries.map((i) => (i.id === selectedInquiry.id ? { ...i, status: "Replied" } : i))
     );
   };
 
+  const handleExportCsv = () => {
+    try {
+      exportToCsv("russell_contacts_export", inquiries, [
+        { header: "ID", key: "id" },
+        { header: "Name", key: "name" },
+        { header: "Email", key: "email" },
+        { header: "Phone", key: "phone" },
+        { header: "Service of Interest", key: "service" },
+        { header: "Budget", key: "budget" },
+        { header: "Date Received", key: "date" },
+        { header: "Status", key: "status" },
+        { header: "Message", key: "message" },
+      ]);
+      toast.success("Contacts exported to CSV successfully!");
+    } catch {
+      toast.error("Failed to export contacts");
+    }
+  };
+
+  const handleExportPdf = () => {
+    try {
+      exportToPdf({
+        title: "Client Inquiries & Project Proposals",
+        subtitle: "Official lead register export from Russell Technologies portal",
+        tableHeaders: ["Name", "Contact", "Service", "Budget", "Date", "Status"],
+        tableRows: inquiries.map((i) => [
+          i.name,
+          `${i.email}\n${i.phone}`,
+          i.service,
+          i.budget,
+          i.date,
+          i.status,
+        ]),
+      });
+      toast.success("Generating print-ready PDF preview...");
+    } catch {
+      toast.error("Failed to generate PDF");
+    }
+  };
+
   return (
     <AdminLayout>
-      <div className="flex items-start gap-3 mb-6">
-        <div className="w-1.5 h-8 bg-blue-600 rounded-full mt-1 shrink-0" />
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Contact Inquiries & Leads
-          </h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Client messages received from the website contact and booking forms.
-          </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="flex items-start gap-3">
+          <div className="w-1.5 h-8 bg-blue-600 rounded-full mt-1 shrink-0" />
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              Contact Inquiries & Leads
+            </h1>
+            <p className="text-sm text-slate-500 mt-0.5">
+              Client messages received from the website contact and booking forms.
+            </p>
+          </div>
+        </div>
+
+        {/* EXPORT ACTIONS */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleExportCsv}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl shadow-2xs transition"
+            title="Download CSV spreadsheet"
+          >
+            <FileSpreadsheet className="size-3.5 text-emerald-600" />
+            <span>Export CSV</span>
+          </button>
+          <button
+            onClick={handleExportPdf}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl shadow-2xs transition"
+            title="Print or Save as PDF"
+          >
+            <Printer className="size-3.5 text-blue-600" />
+            <span>Export PDF</span>
+          </button>
         </div>
       </div>
 

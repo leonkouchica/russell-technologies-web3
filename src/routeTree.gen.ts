@@ -24,6 +24,7 @@ import { Route as AdminMediaRouteImport } from './routes/admin.media'
 import { Route as AdminNewsletterRouteImport } from './routes/admin.newsletter'
 import { Route as AdminProfileRouteImport } from './routes/admin.profile'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminSiteContentRouteImport } from './routes/admin.site-content'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
@@ -116,6 +117,11 @@ const AdminProfileRoute = AdminProfileRouteImport.update({
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
   id: '/admin/settings',
   path: '/admin/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSiteContentRoute = AdminSiteContentRouteImport.update({
+  id: '/admin/site-content',
+  path: '/admin/site-content',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
@@ -224,6 +230,7 @@ export interface FileRoutesByFullPath {
   '/admin/newsletter': typeof AdminNewsletterRoute
   '/admin/profile': typeof AdminProfileRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/site-content': typeof AdminSiteContentRoute
   '/admin/users': typeof AdminUsersRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/events/$slug': typeof EventsSlugRoute
@@ -259,6 +266,7 @@ export interface FileRoutesByTo {
   '/admin/newsletter': typeof AdminNewsletterRoute
   '/admin/profile': typeof AdminProfileRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/site-content': typeof AdminSiteContentRoute
   '/admin/users': typeof AdminUsersRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/events/$slug': typeof EventsSlugRoute
@@ -295,6 +303,7 @@ export interface FileRoutesById {
   '/admin/newsletter': typeof AdminNewsletterRoute
   '/admin/profile': typeof AdminProfileRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/site-content': typeof AdminSiteContentRoute
   '/admin/users': typeof AdminUsersRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/events/$slug': typeof EventsSlugRoute
@@ -332,6 +341,7 @@ export interface FileRouteTypes {
     | '/admin/newsletter'
     | '/admin/profile'
     | '/admin/settings'
+    | '/admin/site-content'
     | '/admin/users'
     | '/blog/$slug'
     | '/events/$slug'
@@ -367,6 +377,7 @@ export interface FileRouteTypes {
     | '/admin/newsletter'
     | '/admin/profile'
     | '/admin/settings'
+    | '/admin/site-content'
     | '/admin/users'
     | '/blog/$slug'
     | '/events/$slug'
@@ -402,6 +413,7 @@ export interface FileRouteTypes {
     | '/admin/newsletter'
     | '/admin/profile'
     | '/admin/settings'
+    | '/admin/site-content'
     | '/admin/users'
     | '/blog/$slug'
     | '/events/$slug'
@@ -438,6 +450,7 @@ export interface RootRouteChildren {
   AdminNewsletterRoute: typeof AdminNewsletterRoute
   AdminProfileRoute: typeof AdminProfileRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminSiteContentRoute: typeof AdminSiteContentRoute
   AdminUsersRoute: typeof AdminUsersRoute
   BlogSlugRoute: typeof BlogSlugRoute
   EventsSlugRoute: typeof EventsSlugRoute
@@ -564,6 +577,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/settings'
       fullPath: '/admin/settings'
       preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/site-content': {
+      id: '/admin/site-content'
+      path: '/admin/site-content'
+      fullPath: '/admin/site-content'
+      preLoaderRoute: typeof AdminSiteContentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/users': {
@@ -710,6 +730,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminNewsletterRoute: AdminNewsletterRoute,
   AdminProfileRoute: AdminProfileRoute,
   AdminSettingsRoute: AdminSettingsRoute,
+  AdminSiteContentRoute: AdminSiteContentRoute,
   AdminUsersRoute: AdminUsersRoute,
   BlogSlugRoute: BlogSlugRoute,
   EventsSlugRoute: EventsSlugRoute,

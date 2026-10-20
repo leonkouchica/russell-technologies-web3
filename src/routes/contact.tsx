@@ -3,7 +3,7 @@ import { useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { ArrowRight, Building2, Clock, Mail, MapPin, MessagesSquare, Phone, UsersRound } from "lucide-react";
-import heroImg from "@/assets/contact-agent.jpg";
+import heroImg from "@/assets/contact-agent.webp";
 import { contact } from "@/lib/site-data";
 import { meta } from "@/components/site/blocks";
 import { BlueCta, Btn, FloatCard, IconBubble, LineEyebrow, SplitHero } from "@/components/site/kit";

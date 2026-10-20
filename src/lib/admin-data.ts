@@ -1,19 +1,19 @@
-import avatar1 from "@/assets/avatar-1.jpg";
-import avatar2 from "@/assets/avatar-2.jpg";
-import avatar3 from "@/assets/avatar-3.jpg";
-import student from "@/assets/student.jpg";
-import farmer from "@/assets/farmer.jpg";
-import gavel from "@/assets/gavel.jpg";
-import artist from "@/assets/artist.jpg";
-import dataImg from "@/assets/data.jpg";
-import classroom from "@/assets/classroom.jpg";
-import meeting from "@/assets/meeting.jpg";
-import building from "@/assets/building.jpg";
-import aboutOffice from "@/assets/about-office.jpg";
-import africaMap from "@/assets/africa-map.png";
-import prodBlueflame from "@/assets/prod-blueflame.jpg";
-import prodFarmspots from "@/assets/prod-farmspots.jpg";
-import prodLaw from "@/assets/prod-law.jpg";
+import avatar1 from "@/assets/avatar-1.webp";
+import avatar2 from "@/assets/avatar-2.webp";
+import avatar3 from "@/assets/avatar-3.webp";
+import student from "@/assets/student.webp";
+import farmer from "@/assets/farmer.webp";
+import gavel from "@/assets/gavel.webp";
+import artist from "@/assets/artist.webp";
+import dataImg from "@/assets/data.webp";
+import classroom from "@/assets/classroom.webp";
+import meeting from "@/assets/meeting.webp";
+import building from "@/assets/building.webp";
+import aboutOffice from "@/assets/about-office.webp";
+import africaMap from "@/assets/africa-map.webp";
+import prodBlueflame from "@/assets/prod-blueflame.webp";
+import prodFarmspots from "@/assets/prod-farmspots.webp";
+import prodLaw from "@/assets/prod-law.webp";
 
 export interface AdminUser {
   id: string;
@@ -111,7 +111,7 @@ export const adminCurrentUser: AdminUser = {
   id: "u-admin",
   name: "Admin",
   title: "Super Admin",
-  email: "admin@russelltech.com",
+  email: "admin@russelltechnologies.org",
   role: "Super Admin",
   status: "Active",
   lastLogin: "Sep 30, 2026, 10:24 AM",
@@ -668,15 +668,15 @@ export const adminSubscribers: AdminSubscriber[] = [
 export const adminMediaFiles: AdminMediaFile[] = [
   {
     id: "med-1",
-    title: "russell-office.jpg",
-    filename: "russell-office.jpg",
-    format: "JPG",
+    title: "russell-office.webp",
+    filename: "russell-office.webp",
+    format: "WEBP",
     size: "2.4 MB",
     dimensions: "1920 × 1080",
     folder: "Company Images",
     uploadedDate: "Sep 10, 2026, 10:24 AM",
     uploadedBy: "Admin",
-    url: "https://russelltech.com/uploads/russell-office.jpg",
+    url: "https://russelltechnologies.org/uploads/russell-office.webp",
     thumbnail: building,
     altText: "Russell Technologies office building",
     caption: "Our headquarters in Lagos, Nigeria.",
@@ -684,14 +684,14 @@ export const adminMediaFiles: AdminMediaFile[] = [
   },
   {
     id: "med-2",
-    title: "tech-summit-2026.jpg",
-    filename: "tech-summit-2026.jpg",
-    format: "JPG",
+    title: "tech-summit-2026.webp",
+    filename: "tech-summit-2026.webp",
+    format: "WEBP",
     size: "3.1 MB",
     folder: "Events",
     uploadedDate: "Sep 8, 2026",
     uploadedBy: "Admin",
-    url: "https://russelltech.com/uploads/tech-summit-2026.jpg",
+    url: "https://russelltechnologies.org/uploads/tech-summit-2026.webp",
     thumbnail: meeting,
     altText: "Tech Summit Keynote Presentation",
     caption: "Annual innovation conference auditorium.",
@@ -699,14 +699,14 @@ export const adminMediaFiles: AdminMediaFile[] = [
   },
   {
     id: "med-3",
-    title: "speaker-keynote.jpg",
-    filename: "speaker-keynote.jpg",
-    format: "JPG",
+    title: "speaker-keynote.webp",
+    filename: "speaker-keynote.webp",
+    format: "WEBP",
     size: "1.8 MB",
     folder: "Events",
     uploadedDate: "Sep 8, 2026",
     uploadedBy: "Admin",
-    url: "https://russelltech.com/uploads/speaker-keynote.jpg",
+    url: "https://russelltechnologies.org/uploads/speaker-keynote.webp",
     thumbnail: avatar1,
     altText: "Keynote Speaker on Stage",
     caption: "Russell Technologies executive address.",
@@ -714,14 +714,14 @@ export const adminMediaFiles: AdminMediaFile[] = [
   },
   {
     id: "med-4",
-    title: "office-space.jpg",
-    filename: "office-space.jpg",
-    format: "JPG",
+    title: "office-space.webp",
+    filename: "office-space.webp",
+    format: "WEBP",
     size: "2.9 MB",
     folder: "Company Images",
     uploadedDate: "Sep 5, 2026",
     uploadedBy: "Admin",
-    url: "https://russelltech.com/uploads/office-space.jpg",
+    url: "https://russelltechnologies.org/uploads/office-space.webp",
     thumbnail: aboutOffice,
     altText: "Open Plan Office Floor",
     caption: "Modern workstation in Victoria Island.",
@@ -737,7 +737,7 @@ export const adminMediaFiles: AdminMediaFile[] = [
     folder: "Company Images",
     uploadedDate: "Sep 4, 2026",
     uploadedBy: "Admin",
-    url: "https://russelltech.com/uploads/intro-video.mp4",
+    url: "https://russelltechnologies.org/uploads/intro-video.mp4",
     thumbnail: dataImg,
     altText: "Russell Technologies Corporate Video",
     caption: "Company brand showreel and overview.",
@@ -745,14 +745,14 @@ export const adminMediaFiles: AdminMediaFile[] = [
   },
   {
     id: "med-6",
-    title: "team-meeting.jpg",
-    filename: "team-meeting.jpg",
-    format: "JPG",
+    title: "team-meeting.webp",
+    filename: "team-meeting.webp",
+    format: "WEBP",
     size: "2.1 MB",
     folder: "Company Images",
     uploadedDate: "Aug 28, 2026",
     uploadedBy: "Admin",
-    url: "https://russelltech.com/uploads/team-meeting.jpg",
+    url: "https://russelltechnologies.org/uploads/team-meeting.webp",
     thumbnail: meeting,
     altText: "Team Collaboration Meeting",
     caption: "Product engineering planning session.",
@@ -760,14 +760,14 @@ export const adminMediaFiles: AdminMediaFile[] = [
   },
   {
     id: "med-7",
-    title: "product-showcase.jpg",
-    filename: "product-showcase.jpg",
-    format: "JPG",
+    title: "product-showcase.webp",
+    filename: "product-showcase.webp",
+    format: "WEBP",
     size: "1.9 MB",
     folder: "Products",
     uploadedDate: "Aug 25, 2026",
     uploadedBy: "Admin",
-    url: "https://russelltech.com/uploads/product-showcase.jpg",
+    url: "https://russelltechnologies.org/uploads/product-showcase.webp",
     thumbnail: dataImg,
     altText: "Product UI Dashboard Display",
     caption: "Overview of SaaS solutions suite.",
@@ -775,14 +775,14 @@ export const adminMediaFiles: AdminMediaFile[] = [
   },
   {
     id: "med-8",
-    title: "africa-map.png",
-    filename: "africa-map.png",
-    format: "PNG",
+    title: "africa-map.webp",
+    filename: "africa-map.webp",
+    format: "WEBP",
     size: "850 KB",
     folder: "Company Images",
     uploadedDate: "Aug 20, 2026",
     uploadedBy: "Admin",
-    url: "https://russelltech.com/uploads/africa-map.png",
+    url: "https://russelltechnologies.org/uploads/africa-map.webp",
     thumbnail: africaMap,
     altText: "Africa Footprint Map",
     caption: "Pan-African expansion hubs.",
@@ -797,7 +797,7 @@ export const adminMediaFiles: AdminMediaFile[] = [
     folder: "Documents",
     uploadedDate: "Aug 18, 2026",
     uploadedBy: "Admin",
-    url: "https://russelltech.com/uploads/company-brochure.pdf",
+    url: "https://russelltechnologies.org/uploads/company-brochure.pdf",
     thumbnail: gavel,
     altText: "Company Profile and Brochure",
     caption: "Detailed corporate profile PDF.",
@@ -805,14 +805,14 @@ export const adminMediaFiles: AdminMediaFile[] = [
   },
   {
     id: "med-10",
-    title: "event-poster.jpg",
-    filename: "event-poster.jpg",
-    format: "JPG",
+    title: "event-poster.webp",
+    filename: "event-poster.webp",
+    format: "WEBP",
     size: "2.5 MB",
     folder: "Events",
     uploadedDate: "Aug 15, 2026",
     uploadedBy: "Admin",
-    url: "https://russelltech.com/uploads/event-poster.jpg",
+    url: "https://russelltechnologies.org/uploads/event-poster.webp",
     thumbnail: artist,
     altText: "African Photo Week Poster",
     caption: "Conference promotional poster banner.",
@@ -820,14 +820,14 @@ export const adminMediaFiles: AdminMediaFile[] = [
   },
   {
     id: "med-11",
-    title: "farmspots-banner.jpg",
-    filename: "farmspots-banner.jpg",
-    format: "JPG",
+    title: "farmspots-banner.webp",
+    filename: "farmspots-banner.webp",
+    format: "WEBP",
     size: "1.7 MB",
     folder: "Products",
     uploadedDate: "Aug 12, 2026",
     uploadedBy: "Admin",
-    url: "https://russelltech.com/uploads/farmspots-banner.jpg",
+    url: "https://russelltechnologies.org/uploads/farmspots-banner.webp",
     thumbnail: prodFarmspots,
     altText: "FARMSPOTS Product Banner",
     caption: "Agricultural marketplace hero image.",
@@ -835,14 +835,14 @@ export const adminMediaFiles: AdminMediaFile[] = [
   },
   {
     id: "med-12",
-    title: "blueflame-product.jpg",
-    filename: "blueflame-product.jpg",
-    format: "JPG",
+    title: "blueflame-product.webp",
+    filename: "blueflame-product.webp",
+    format: "WEBP",
     size: "2.3 MB",
     folder: "Products",
     uploadedDate: "Aug 10, 2026",
     uploadedBy: "Admin",
-    url: "https://russelltech.com/uploads/blueflame-product.jpg",
+    url: "https://russelltechnologies.org/uploads/blueflame-product.webp",
     thumbnail: prodBlueflame,
     altText: "BLUEFLAME Product Mockup",
     caption: "Downstream fuel logistics interface.",
@@ -855,7 +855,7 @@ export const adminUsers: AdminUser[] = [
     id: "u-1",
     name: "Admin User",
     title: "Super Admin",
-    email: "admin@russelltech.com",
+    email: "admin@russelltechnologies.org",
     role: "Super Admin",
     status: "Active",
     lastLogin: "Sep 30, 2026 10:24 AM",
@@ -865,7 +865,7 @@ export const adminUsers: AdminUser[] = [
     id: "u-2",
     name: "Chioma Okafor",
     title: "Content Manager",
-    email: "chioma@russelltech.com",
+    email: "chioma@russelltechnologies.org",
     role: "Editor",
     status: "Active",
     lastLogin: "Sep 29, 2026 4:15 PM",
@@ -875,7 +875,7 @@ export const adminUsers: AdminUser[] = [
     id: "u-3",
     name: "Tunde Adebayo",
     title: "Marketing Lead",
-    email: "tunde@russelltech.com",
+    email: "tunde@russelltechnologies.org",
     role: "Editor",
     status: "Active",
     lastLogin: "Sep 29, 2026 11:02 AM",
@@ -885,7 +885,7 @@ export const adminUsers: AdminUser[] = [
     id: "u-4",
     name: "Grace Johnson",
     title: "Event Coordinator",
-    email: "grace@russelltech.com",
+    email: "grace@russelltechnologies.org",
     role: "Author",
     status: "Active",
     lastLogin: "Sep 28, 2026 3:40 PM",
@@ -895,7 +895,7 @@ export const adminUsers: AdminUser[] = [
     id: "u-5",
     name: "Ibrahim Bello",
     title: "Support Staff",
-    email: "ibrahim@russelltech.com",
+    email: "ibrahim@russelltechnologies.org",
     role: "Contributor",
     status: "Active",
     lastLogin: "Sep 27, 2026 9:18 AM",
@@ -905,7 +905,7 @@ export const adminUsers: AdminUser[] = [
     id: "u-6",
     name: "Nkechi Eze",
     title: "Newsletter Manager",
-    email: "nkechi@russelltech.com",
+    email: "nkechi@russelltechnologies.org",
     role: "Editor",
     status: "Active",
     lastLogin: "Sep 26, 2026 1:25 PM",
@@ -915,7 +915,7 @@ export const adminUsers: AdminUser[] = [
     id: "u-7",
     name: "Daniel Smith",
     title: "Web Developer",
-    email: "daniel@russelltech.com",
+    email: "daniel@russelltechnologies.org",
     role: "Administrator",
     status: "Active",
     lastLogin: "Sep 25, 2026 5:30 PM",
@@ -925,10 +925,159 @@ export const adminUsers: AdminUser[] = [
     id: "u-8",
     name: "Fatima Yusuf",
     title: "Content Writer",
-    email: "fatima@russelltech.com",
+    email: "fatima@russelltechnologies.org",
     role: "Author",
     status: "Inactive",
     lastLogin: "Sep 20, 2026 8:12 AM",
     initials: "FY",
+  },
+];
+
+export interface AdminAuditEntry {
+  id: string;
+  action: string;
+  category: "Content" | "Marketing" | "System" | "Security" | "Export";
+  target: string;
+  user: {
+    name: string;
+    avatar?: string;
+    initials?: string;
+    role: string;
+  };
+  timestamp: string;
+  relativeTime: string;
+  status: "Success" | "Info" | "Warning" | "Critical";
+  ipAddress: string;
+  details?: string;
+}
+
+export const adminAuditLogs: AdminAuditEntry[] = [
+  {
+    id: "log-1",
+    action: "Exported CSV Database",
+    category: "Export",
+    target: "Contacts & Inquiries (12 records)",
+    user: {
+      name: "Admin User",
+      avatar: avatar1,
+      role: "Super Admin",
+    },
+    timestamp: "Oct 20, 2026 08:15 AM",
+    relativeTime: "Just now",
+    status: "Success",
+    ipAddress: "197.210.44.12",
+    details: "Downloaded 12 client proposals in UTF-8 BOM CSV format for offline reporting.",
+  },
+  {
+    id: "log-2",
+    action: "Dispatched Campaign Blast",
+    category: "Marketing",
+    target: "Tech Digest #42 (1,250 subscribers)",
+    user: {
+      name: "Nkechi Eze",
+      initials: "NE",
+      role: "Editor",
+    },
+    timestamp: "Oct 20, 2026 07:30 AM",
+    relativeTime: "45m ago",
+    status: "Success",
+    ipAddress: "102.89.32.108",
+    details: "Scheduled broadcast sent via newsletter engine with 99.4% delivery confirmation.",
+  },
+  {
+    id: "log-3",
+    action: "High-Res Image Optimization",
+    category: "System",
+    target: "Media Library (44 WebP assets)",
+    user: {
+      name: "Daniel Smith",
+      avatar: avatar1,
+      role: "Administrator",
+    },
+    timestamp: "Oct 20, 2026 06:40 AM",
+    relativeTime: "1h ago",
+    status: "Success",
+    ipAddress: "197.210.44.12",
+    details: "Executed client-side canvas WebP conversion pipeline with 74.2% average size reduction.",
+  },
+  {
+    id: "log-4",
+    action: "Created New Blog Publication",
+    category: "Content",
+    target: "Sustainable AgTech in West Africa",
+    user: {
+      name: "Chioma Okafor",
+      avatar: avatar2,
+      role: "Content Manager",
+    },
+    timestamp: "Oct 19, 2026 04:22 PM",
+    relativeTime: "Yesterday",
+    status: "Success",
+    ipAddress: "105.112.56.24",
+    details: "Published long-form post with featured image and SEO meta description.",
+  },
+  {
+    id: "log-5",
+    action: "System Settings Synchronized",
+    category: "Settings" as any,
+    target: "Notification & Mailchimp Keys",
+    user: {
+      name: "Admin User",
+      avatar: avatar1,
+      role: "Super Admin",
+    },
+    timestamp: "Oct 19, 2026 02:10 PM",
+    relativeTime: "Yesterday",
+    status: "Info",
+    ipAddress: "197.210.44.12",
+    details: "Updated webhook verification token and configured inquiry email forwarding.",
+  },
+  {
+    id: "log-6",
+    action: "User Authentication Challenge",
+    category: "Security",
+    target: "2FA Verification (admin@russelltechnologies.org)",
+    user: {
+      name: "Admin User",
+      avatar: avatar1,
+      role: "Super Admin",
+    },
+    timestamp: "Oct 19, 2026 10:45 AM",
+    relativeTime: "Yesterday",
+    status: "Success",
+    ipAddress: "197.210.44.12",
+    details: "Hardware passkey authentication verified successfully. Session renewed.",
+  },
+  {
+    id: "log-7",
+    action: "Generated Executive PDF",
+    category: "Export",
+    target: "Executive Dashboard Report Q3",
+    user: {
+      name: "Tunde Adebayo",
+      avatar: avatar3,
+      role: "Editor",
+    },
+    timestamp: "Oct 18, 2026 05:15 PM",
+    relativeTime: "2 days ago",
+    status: "Success",
+    ipAddress: "102.89.44.91",
+    details: "Exported styled PDF document containing KPIs, pageviews, and upcoming summits.",
+  },
+  {
+    id: "log-8",
+    action: "Upcoming Event Registered",
+    category: "Content",
+    target: "West Africa AgTech Summit 2026",
+    user: {
+      name: "Grace Johnson",
+      avatar: avatar2,
+      role: "Author",
+    },
+    timestamp: "Oct 18, 2026 11:30 AM",
+    relativeTime: "2 days ago",
+    status: "Success",
+    ipAddress: "105.112.78.33",
+    details: "Created hybrid event listing with Lagos Oriental Hotel venue and webinar link.",
   },
 ];

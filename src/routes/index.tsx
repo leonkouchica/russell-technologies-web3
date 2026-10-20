@@ -4,10 +4,10 @@ import {
   ArrowRight, BarChart3, Bot, ChevronLeft, ChevronRight, Compass, Cpu, Droplet, FileCheck2, GraduationCap,
   HeartPulse, Landmark, LayoutGrid, LifeBuoy, PenTool, Play, Scale, ScanLine, ShieldCheck, Sprout, Star, Truck, Workflow, Award, Boxes,
 } from "lucide-react";
-import hero from "@/assets/home-hero.jpg";
-import caseWoman from "@/assets/case-woman.jpg";
-import meeting from "@/assets/meeting.jpg";
-import logo from "@/assets/logo.png";
+import hero from "@/assets/home-hero.webp";
+import caseWoman from "@/assets/case-woman.webp";
+import meeting from "@/assets/meeting.webp";
+import logo from "@/assets/logo.webp";
 import { posts, products, services, testimonials } from "@/lib/site-data";
 import { CtaBand, meta } from "@/components/site/blocks";
 import { BrandLogos } from "@/components/site/kit";

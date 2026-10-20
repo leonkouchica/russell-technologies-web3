@@ -1,5 +1,5 @@
-import { useState, type ReactNode } from "react";
-import { Link, useRouterState } from "@tanstack/react-router";
+import { useState, useRef, useEffect, type ReactNode } from "react";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   FileText,
@@ -23,12 +23,36 @@ import {
   LogOut,
   ShieldAlert,
   User,
+  Layers,
+  Check,
+  Clock,
+  Sun,
+  Moon,
+  Sparkles,
+  CheckCheck,
+  Trash2,
+  Activity,
+  AlertTriangle,
+  Info,
+  CheckCircle2,
+  ArrowRight,
 } from "lucide-react";
-import logoImg from "@/assets/logo.png";
+import logoImg from "@/assets/logo.webp";
 import { adminCurrentUser } from "@/lib/admin-data";
 
 interface AdminLayoutProps {
   children: ReactNode;
+}
+
+interface NotificationItem {
+  id: string;
+  category: "inquiry" | "comment" | "system" | "marketing";
+  title: string;
+  desc: string;
+  time: string;
+  read: boolean;
+  link?: string;
+  actionText?: string;
 }
 
 export function AdminLayout({ children }: AdminLayoutProps) {
@@ -36,7 +60,33 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const currentPath = routerState.location.pathname;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifFilter, setNotifFilter] = useState<"all" | "inquiry" | "comment" | "system">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
+  const navigate = useNavigate();
+
+  // Dark Mode State
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("russell_admin_theme");
+      if (saved) return saved === "dark";
+      return document.documentElement.classList.contains("dark");
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      if (isDark) {
+        document.documentElement.classList.add("dark");
+        localStorage.setItem("russell_admin_theme", "dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+        localStorage.setItem("russell_admin_theme", "light");
+      }
+    }
+  }, [isDark]);
 
   const navItems = [
     { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -48,9 +98,76 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { label: "Comments", href: "/admin/comments", icon: MessageSquare },
     { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
     { label: "Contacts", href: "/admin/contacts", icon: Contact },
+    { label: "Site Content", href: "/admin/site-content", icon: Layers },
     { label: "Users & Roles", href: "/admin/users", icon: Users2 },
     { label: "Settings", href: "/admin/settings", icon: Settings },
   ];
+
+  /* Notification Center Data */
+  const [notifications, setNotifications] = useState<NotificationItem[]>([
+    {
+      id: "n1",
+      category: "inquiry",
+      title: "New Project Proposal",
+      desc: "Dr. Kunle Adeleke submitted an Enterprise AI & Cloud Migration proposal.",
+      time: "15m ago",
+      read: false,
+      link: "/admin/contacts",
+      actionText: "Review Proposal",
+    },
+    {
+      id: "n2",
+      category: "system",
+      title: "WebP Asset Optimization Complete",
+      desc: "All 44 image assets converted to WebP with 74.2% size reduction.",
+      time: "1h ago",
+      read: false,
+      link: "/admin/media",
+      actionText: "View Media",
+    },
+    {
+      id: "n3",
+      category: "comment",
+      title: "Comment Awaiting Moderation",
+      desc: "Adeola Adebisi commented on 'AI in African Agriculture'.",
+      time: "3h ago",
+      read: false,
+      link: "/admin/comments",
+      actionText: "Moderate",
+    },
+    {
+      id: "n4",
+      category: "marketing",
+      title: "New Newsletter Subscriber",
+      desc: "chioma.nwankwo@outlook.com subscribed via Website Footer.",
+      time: "5h ago",
+      read: true,
+      link: "/admin/newsletter",
+      actionText: "View Subscribers",
+    },
+    {
+      id: "n5",
+      category: "system",
+      title: "Automated Backup Verified",
+      desc: "Snapshot created and SSL TLS 1.3 certs renewed for 90 days.",
+      time: "1d ago",
+      read: true,
+      link: "/admin/analytics",
+      actionText: "Health Status",
+    },
+  ]);
+
+  const filteredNotifications = notifications.filter((n) => {
+    if (notifFilter === "all") return true;
+    return n.category === notifFilter;
+  });
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  /* Search results filtering */
+  const searchResults = searchQuery.trim().length > 1
+    ? navItems.filter((item) => item.label.toLowerCase().includes(searchQuery.toLowerCase()))
+    : [];
 
   const isItemActive = (href: string) => {
     if (href === "/admin") {
@@ -60,12 +177,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f7fb] text-slate-800 antialiased flex flex-col lg:flex-row">
+    <div className="admin-layout min-h-screen bg-[#f4f7fb] dark:bg-[#070d18] text-slate-800 dark:text-slate-100 antialiased flex flex-col lg:flex-row transition-colors duration-200">
       {/* MOBILE HEADER */}
       <div className="lg:hidden flex items-center justify-between px-4 py-3 bg-[#0b1328] text-white sticky top-0 z-50 shadow-md">
-        <Link to="/admin" className="flex items-center gap-2.5">
-          <img src={logoImg} alt="Russell Technologies" className="h-7 w-auto" />
-          <span className="font-bold text-base tracking-tight">Russell <span className="text-blue-400 font-medium">Technologies</span></span>
+        <Link to="/admin" className="flex items-center">
+          <img src={logoImg} alt="Russell Technologies" className="h-7 w-auto object-contain" />
         </Link>
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -83,14 +199,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         }`}
       >
         <div className="flex flex-col flex-1 overflow-y-auto px-4 py-5 scrollbar-thin scrollbar-thumb-white/10">
-          {/* LOGO */}
-          <div className="px-2 mb-6 hidden lg:flex items-center gap-2.5">
-            <Link to="/admin" className="flex items-center gap-2.5">
+          {/* LOGO (Text removed per user request) */}
+          <div className="px-2 mb-6 hidden lg:flex items-center">
+            <Link to="/admin" className="flex items-center">
               <img src={logoImg} alt="Russell Technologies" className="h-8 w-auto object-contain" />
-              <div className="flex flex-col">
-                <span className="font-extrabold text-base tracking-tight text-white leading-tight">Russell</span>
-                <span className="text-[11px] font-medium text-slate-400 -mt-0.5 tracking-wide">Technologies</span>
-              </div>
             </Link>
           </div>
 
@@ -143,12 +255,26 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           </div>
         </div>
 
-        {/* SIDEBAR FOOTER (Public Site link) */}
-        <div className="p-4 border-t border-white/5 flex items-center justify-between text-xs text-slate-400">
-          <Link to="/" target="_blank" className="hover:text-white flex items-center gap-1.5 transition">
-            <ExternalLink className="size-3.5" /> View Public Site
+        {/* SIDEBAR FOOTER (Public Site & System Health) */}
+        <div className="p-4 border-t border-white/5 space-y-2.5">
+          <div className="flex items-center justify-between text-xs text-slate-400">
+            <Link to="/" target="_blank" className="hover:text-white flex items-center gap-1.5 transition">
+              <ExternalLink className="size-3.5" /> View Public Site
+            </Link>
+            <span className="text-[10px] bg-blue-900/60 text-blue-300 px-2 py-0.5 rounded-full font-medium">v1.2</span>
+          </div>
+          <Link
+            to="/admin"
+            hash="system-health"
+            className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-emerald-950/40 border border-emerald-500/20 text-emerald-300 hover:bg-emerald-950/70 transition text-[11px]"
+            title="System Status: All systems operational"
+          >
+            <span className="flex items-center gap-1.5 font-medium">
+              <span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
+              All Systems Operational
+            </span>
+            <span className="text-[10px] font-mono opacity-80">99.98%</span>
           </Link>
-          <span className="text-[10px] bg-blue-900/60 text-blue-300 px-2 py-0.5 rounded-full font-medium">v1.0</span>
         </div>
       </aside>
 
@@ -161,41 +287,246 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       )}
 
       {/* MAIN CONTENT WRAPPER */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 bg-[#f4f7fb] dark:bg-[#070d18] transition-colors duration-200">
         {/* TOP BAR */}
-        <header className="sticky top-0 z-20 bg-white border-b border-slate-200/90 px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4">
+        <header className="sticky top-0 z-20 bg-white dark:bg-[#0c1527] border-b border-slate-200/90 dark:border-slate-800/80 px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4 transition-colors">
           {/* SEARCH BAR */}
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400 dark:text-slate-500" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && searchResults.length > 0) {
+                  navigate({ to: searchResults[0].href });
+                  setSearchQuery("");
+                  setSearchFocused(false);
+                }
+              }}
               placeholder="Search posts, pages, events, subscribers..."
-              className="w-full pl-10 pr-4 py-2 text-sm bg-[#f4f7fb] border border-transparent rounded-full focus:bg-white focus:border-blue-500 focus:outline-hidden transition text-slate-800 placeholder:text-slate-400"
+              className="w-full pl-10 pr-4 py-2 text-sm bg-[#f4f7fb] dark:bg-[#111c33] border border-transparent dark:border-slate-800/80 rounded-full focus:bg-white dark:focus:bg-[#0f1930] focus:border-blue-500 focus:outline-hidden transition text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
             />
+            {/* Search Results Dropdown */}
+            {searchFocused && searchQuery.trim().length > 1 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#0c1527] rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 py-2 z-30 animate-in fade-in zoom-in-95 duration-100">
+                {searchResults.length > 0 ? (
+                  searchResults.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <Link
+                        key={item.href}
+                        to={item.href}
+                        onClick={() => { setSearchQuery(""); setSearchFocused(false); }}
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition"
+                      >
+                        <Icon className="size-4 text-slate-400 dark:text-slate-500" />
+                        {item.label}
+                      </Link>
+                    );
+                  })
+                ) : (
+                  <p className="px-4 py-3 text-xs text-slate-400 dark:text-slate-500">No results for "{searchQuery}"</p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* RIGHT ACTIONS */}
-          <div className="flex items-center gap-3 sm:gap-4">
-            {/* NOTIFICATIONS */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* DARK MODE TOGGLE */}
+            <button
+              onClick={() => setIsDark(!isDark)}
+              className="p-2 rounded-full text-slate-500 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 transition"
+              aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+              title={isDark ? "Light Mode" : "Dark Mode"}
+            >
+              {isDark ? (
+                <Sun className="size-5 text-amber-400" />
+              ) : (
+                <Moon className="size-5 text-slate-600" />
+              )}
+            </button>
+
+            {/* NOTIFICATIONS CENTER */}
             <div className="relative">
               <button
-                className="relative p-2 rounded-full text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition"
-                aria-label="View notifications"
+                onClick={() => { setNotificationsOpen(!notificationsOpen); setUserDropdownOpen(false); }}
+                className="relative p-2 rounded-full text-slate-500 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 transition"
+                aria-label="View notifications center"
               >
                 <Bell className="size-5" />
-                <span className="absolute top-1 right-1 size-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                  3
-                </span>
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 size-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
+                    {unreadCount}
+                  </span>
+                )}
               </button>
+
+              {/* Notification Center Tray */}
+              {notificationsOpen && (
+                <>
+                  <div onClick={() => setNotificationsOpen(false)} className="fixed inset-0 z-20" />
+                  <div className="absolute right-0 mt-2 w-88 sm:w-96 rounded-2xl bg-white dark:bg-[#0c1527] shadow-2xl border border-slate-200/90 dark:border-slate-800 z-30 animate-in fade-in zoom-in-95 duration-100 overflow-hidden text-left">
+                    {/* Header */}
+                    <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">Notification Center</h4>
+                        {unreadCount > 0 && (
+                          <span className="text-[10px] font-extrabold bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 px-2 py-0.5 rounded-full">
+                            {unreadCount} new
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-[11px]">
+                        {unreadCount > 0 && (
+                          <button
+                            onClick={() => setNotifications(prev => prev.map(n => ({ ...n, read: true })))}
+                            className="text-blue-600 dark:text-blue-400 hover:underline font-semibold flex items-center gap-1"
+                          >
+                            <CheckCheck className="size-3.5" /> Mark read
+                          </button>
+                        )}
+                        {notifications.length > 0 && (
+                          <button
+                            onClick={() => setNotifications([])}
+                            className="text-slate-400 hover:text-red-500 transition"
+                            title="Clear all notifications"
+                          >
+                            <Trash2 className="size-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Filter Tabs */}
+                    <div className="flex items-center gap-1 px-3 py-2 bg-slate-50/70 dark:bg-[#09101f] border-b border-slate-100 dark:border-slate-800 text-xs">
+                      {(["all", "inquiry", "comment", "system"] as const).map((cat) => (
+                        <button
+                          key={cat}
+                          onClick={() => setNotifFilter(cat)}
+                          className={`px-2.5 py-1 rounded-lg font-semibold capitalize transition text-[11px] ${
+                            notifFilter === cat
+                              ? "bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-xs"
+                              : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                          }`}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Notifications List */}
+                    <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/80">
+                      {filteredNotifications.length > 0 ? (
+                        filteredNotifications.map((n) => (
+                          <div
+                            key={n.id}
+                            className={`p-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition flex items-start gap-3 group relative ${
+                              !n.read ? "bg-blue-50/30 dark:bg-blue-950/20" : ""
+                            }`}
+                          >
+                            {/* Icon Indicator */}
+                            <div className="mt-0.5 shrink-0">
+                              {n.category === "inquiry" && (
+                                <div className="size-7 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 flex items-center justify-center">
+                                  <Contact className="size-3.5" />
+                                </div>
+                              )}
+                              {n.category === "comment" && (
+                                <div className="size-7 rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-300 flex items-center justify-center">
+                                  <MessageSquare className="size-3.5" />
+                                </div>
+                              )}
+                              {n.category === "system" && (
+                                <div className="size-7 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-300 flex items-center justify-center">
+                                  <Activity className="size-3.5" />
+                                </div>
+                              )}
+                              {n.category === "marketing" && (
+                                <div className="size-7 rounded-lg bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-300 flex items-center justify-center">
+                                  <Mail className="size-3.5" />
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Content */}
+                            <div className="flex-1 min-w-0 pr-6">
+                              <div className="flex items-center gap-1.5">
+                                <h5 className={`text-xs font-bold leading-tight ${n.read ? "text-slate-700 dark:text-slate-300" : "text-slate-900 dark:text-white"}`}>
+                                  {n.title}
+                                </h5>
+                                {!n.read && (
+                                  <span className="size-1.5 rounded-full bg-blue-600 shrink-0" />
+                                )}
+                              </div>
+                              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+                                {n.desc}
+                              </p>
+                              <div className="flex items-center justify-between mt-2">
+                                <span className="text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1 font-medium">
+                                  <Clock className="size-2.5" /> {n.time}
+                                </span>
+                                {n.link && (
+                                  <Link
+                                    to={n.link}
+                                    onClick={() => {
+                                      setNotifications(prev => prev.map(item => item.id === n.id ? { ...item, read: true } : item));
+                                      setNotificationsOpen(false);
+                                    }}
+                                    className="text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-0.5"
+                                  >
+                                    {n.actionText || "View"} <ArrowRight className="size-2.5" />
+                                  </Link>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Dismiss button */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setNotifications(prev => prev.filter(item => item.id !== n.id));
+                              }}
+                              className="absolute top-3 right-3 text-slate-300 hover:text-slate-500 dark:text-slate-600 dark:hover:text-slate-400 opacity-0 group-hover:opacity-100 transition"
+                              title="Dismiss"
+                            >
+                              <X className="size-3.5" />
+                            </button>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="px-4 py-8 text-center">
+                          <CheckCircle2 className="size-7 text-emerald-500 mx-auto mb-2 opacity-80" />
+                          <p className="text-xs font-bold text-slate-700 dark:text-slate-300">You're all caught up!</p>
+                          <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">No notifications in this filter.</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="p-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-[#09101f] text-center">
+                      <Link
+                        to="/admin"
+                        hash="audit-log"
+                        onClick={() => setNotificationsOpen(false)}
+                        className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
+                      >
+                        <Activity className="size-3.5" /> View Activity & Audit Log
+                      </Link>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* USER PROFILE */}
             <div className="relative">
               <button
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="flex items-center gap-2.5 p-1 rounded-xl hover:bg-slate-50 transition"
+                className="flex items-center gap-2.5 p-1 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 transition"
               >
                 <img
                   src={adminCurrentUser.avatar}
@@ -203,8 +534,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                   className="size-9 rounded-full object-cover ring-2 ring-blue-500/20"
                 />
                 <div className="hidden sm:flex flex-col text-left">
-                  <span className="text-xs font-bold text-slate-800 leading-tight">{adminCurrentUser.name}</span>
-                  <span className="text-[11px] text-slate-400 font-medium leading-tight">{adminCurrentUser.title}</span>
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-100 leading-tight">{adminCurrentUser.name}</span>
+                  <span className="text-[11px] text-slate-400 dark:text-slate-400 font-medium leading-tight">{adminCurrentUser.title}</span>
                 </div>
                 <ChevronDown className="size-4 text-slate-400 hidden sm:block" />
               </button>
@@ -215,47 +546,47 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                     onClick={() => setUserDropdownOpen(false)}
                     className="fixed inset-0 z-20"
                   />
-                  <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-white shadow-xl border border-slate-100 py-2 z-30 animate-in fade-in zoom-in-95 duration-100">
-                    <div className="px-4 py-2 border-b border-slate-100">
-                      <p className="text-sm font-bold text-slate-800">{adminCurrentUser.name}</p>
+                  <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-white dark:bg-[#0c1527] shadow-xl border border-slate-100 dark:border-slate-800 py-2 z-30 animate-in fade-in zoom-in-95 duration-100">
+                    <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800">
+                      <p className="text-sm font-bold text-slate-800 dark:text-white">{adminCurrentUser.name}</p>
                       <p className="text-xs text-slate-400 truncate">{adminCurrentUser.email}</p>
-                      <span className="inline-block mt-1 text-[10px] font-semibold bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">
+                      <span className="inline-block mt-1 text-[10px] font-semibold bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 px-2 py-0.5 rounded-full">
                         {adminCurrentUser.role}
                       </span>
                     </div>
                     <Link
                       to="/admin/profile"
                       onClick={() => setUserDropdownOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                      className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60"
                     >
                       <User className="size-4 text-slate-400" /> My Profile & Security
                     </Link>
                     <Link
                       to="/admin/users"
                       onClick={() => setUserDropdownOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                      className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60"
                     >
                       <Users2 className="size-4 text-slate-400" /> Users & Permissions
                     </Link>
                     <Link
                       to="/admin/settings"
                       onClick={() => setUserDropdownOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                      className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60"
                     >
                       <Settings className="size-4 text-slate-400" /> System Settings
                     </Link>
-                    <div className="border-t border-slate-100 my-1" />
+                    <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
                     <Link
                       to="/admin/login"
                       onClick={() => setUserDropdownOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                      className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60"
                     >
                       <LogOut className="size-4 text-slate-400" /> Lock Screen / Sign Out
                     </Link>
                     <Link
                       to="/"
                       onClick={() => setUserDropdownOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-red-600 hover:bg-red-50"
+                      className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
                     >
                       <LogOut className="size-4" /> Exit to Public Site
                     </Link>

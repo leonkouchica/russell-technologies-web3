@@ -23,7 +23,7 @@ export function AdminStatCard({
   iconColor = "text-blue-600",
 }: AdminStatCardProps) {
   return (
-    <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex flex-col justify-between hover:shadow-md transition">
+    <div className="bg-white dark:bg-[#0c1527] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex flex-col justify-between hover:shadow-md transition">
       <div className="flex items-start justify-between gap-3">
         <div className={`p-2.5 rounded-xl ${iconBgColor} ${iconColor}`}>
           <Icon className="size-5" />
@@ -32,10 +32,10 @@ export function AdminStatCard({
           <span
             className={`inline-flex items-center gap-0.5 text-xs font-bold px-2 py-0.5 rounded-full ${
               changeType === "increase"
-                ? "bg-emerald-50 text-emerald-700"
+                ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"
                 : changeType === "decrease"
-                ? "bg-rose-50 text-rose-700"
-                : "bg-slate-100 text-slate-600"
+                ? "bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300"
+                : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
             }`}
           >
             {changeType === "increase" ? "↑" : changeType === "decrease" ? "↓" : ""} {change}
@@ -44,9 +44,9 @@ export function AdminStatCard({
       </div>
 
       <div className="mt-4">
-        <p className="text-xs font-medium text-slate-500">{title}</p>
-        <p className="text-2xl font-extrabold text-slate-900 tracking-tight mt-0.5">{value}</p>
-        {note && <p className="text-[11px] text-slate-400 mt-1">{note}</p>}
+        <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{title}</p>
+        <p className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-0.5">{value}</p>
+        {note && <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">{note}</p>}
       </div>
     </div>
   );
@@ -54,8 +54,8 @@ export function AdminStatCard({
 
 export function AdminDateFilter({ dateText = "Sep 1, 2026 – Sep 30, 2026" }: { dateText?: string }) {
   return (
-    <button className="inline-flex items-center gap-2 bg-white border border-slate-200/90 text-slate-700 hover:bg-slate-50 font-semibold text-xs px-3.5 py-2 rounded-xl shadow-xs transition">
-      <Calendar className="size-3.5 text-slate-500" />
+    <button className="inline-flex items-center gap-2 bg-white dark:bg-[#0c1527] border border-slate-200/90 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 font-semibold text-xs px-3.5 py-2 rounded-xl shadow-xs transition cursor-pointer">
+      <Calendar className="size-3.5 text-slate-500 dark:text-slate-400" />
       <span>{dateText}</span>
       <ChevronDown className="size-3 text-slate-400" />
     </button>

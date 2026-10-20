@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BarChart3, Building2, Eye, Globe2, Layers, Lightbulb, Rocket, ShieldCheck, Target, TrendingUp, Users, UsersRound } from "lucide-react";
-import heroImg from "@/assets/about-hero.jpg";
-import office from "@/assets/about-office.jpg";
-import team from "@/assets/about-team.jpg";
-import mission from "@/assets/mission.jpg";
-import africa from "@/assets/africa-map.png";
+import heroImg from "@/assets/about-hero.webp";
+import office from "@/assets/about-office.webp";
+import team from "@/assets/about-team.webp";
+import mission from "@/assets/mission.webp";
+import africa from "@/assets/africa-map.webp";
 import { meta } from "@/components/site/blocks";
 import { BlueCta, Btn, FloatCard, IconBubble, LineEyebrow, SplitHero } from "@/components/site/kit";
 

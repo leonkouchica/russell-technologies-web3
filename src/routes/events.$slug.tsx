@@ -21,9 +21,9 @@ import {
 import { allAdminEvents, type AdminEvent } from "@/lib/admin-data";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import avatar1 from "@/assets/avatar-1.jpg";
-import avatar2 from "@/assets/avatar-2.jpg";
-import avatar3 from "@/assets/avatar-3.jpg";
+import avatar1 from "@/assets/avatar-1.webp";
+import avatar2 from "@/assets/avatar-2.webp";
+import avatar3 from "@/assets/avatar-3.webp";
 
 export const Route = createFileRoute("/events/$slug")({
   head: ({ params }) => {

@@ -1,17 +1,17 @@
-import svcWeb from "@/assets/svc-web.jpg";
-import svcMobile from "@/assets/svc-mobile.jpg";
-import svcAutomation from "@/assets/svc-automation.jpg";
-import svcAi from "@/assets/svc-ai.jpg";
-import classroom from "@/assets/classroom.jpg";
-import prodLaw from "@/assets/prod-law.jpg";
-import prodBlueflame from "@/assets/prod-blueflame.jpg";
-import prodFarm from "@/assets/prod-farmspots.jpg";
-import student from "@/assets/student.jpg";
-import farmer from "@/assets/farmer.jpg";
-import gavel from "@/assets/gavel.jpg";
-import artist from "@/assets/artist.jpg";
-import data from "@/assets/data.jpg";
-import meeting from "@/assets/meeting.jpg";
+import svcWeb from "@/assets/svc-web.webp";
+import svcMobile from "@/assets/svc-mobile.webp";
+import svcAutomation from "@/assets/svc-automation.webp";
+import svcAi from "@/assets/svc-ai.webp";
+import classroom from "@/assets/classroom.webp";
+import prodLaw from "@/assets/prod-law.webp";
+import prodBlueflame from "@/assets/prod-blueflame.webp";
+import prodFarm from "@/assets/prod-farmspots.webp";
+import student from "@/assets/student.webp";
+import farmer from "@/assets/farmer.webp";
+import gavel from "@/assets/gavel.webp";
+import artist from "@/assets/artist.webp";
+import data from "@/assets/data.webp";
+import meeting from "@/assets/meeting.webp";
 
 export type Service = {
   slug: "web-development" | "mobile-applications" | "automation" | "ai-solutions";
@@ -205,7 +205,7 @@ export const testimonials = [
 ];
 
 export const contact = {
-  email: "info@russelltech.com",
+  email: "info@russelltechnologies.org",
   phone: "+234 812 345 6789",
   address: "Plot 12, Admiralty Way, Lekki Phase 1, Lagos, Nigeria",
   city: "Lagos, Nigeria",

@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/logo.webp";
 import { useState } from "react";
 import { ArrowUp, Facebook, Instagram, Linkedin, Twitter, Youtube } from "lucide-react";
 import { toast } from "sonner";

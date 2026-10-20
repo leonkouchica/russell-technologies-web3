@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   User,
   Shield,
@@ -15,11 +15,13 @@ import {
   Globe,
   Bell,
   Clock,
+  Sparkles,
 } from "lucide-react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import avatar1 from "@/assets/avatar-1.jpg";
+import avatar1 from "@/assets/avatar-1.webp";
+import { convertImageToWebP } from "@/lib/image-utils";
 
 export const Route = createFileRoute("/admin/profile")({
   component: AdminProfilePage,
@@ -27,11 +29,35 @@ export const Route = createFileRoute("/admin/profile")({
 
 export function AdminProfilePage() {
   const [activeTab, setActiveTab] = useState<"general" | "security" | "sessions">("general");
+  const [avatarSrc, setAvatarSrc] = useState<string>(avatar1);
+  const [isConvertingAvatar, setIsConvertingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+    try {
+      setIsConvertingAvatar(true);
+      toast.loading("Converting profile picture to High-Quality WebP...", { id: "avatar-upload" });
+      const res = await convertImageToWebP(file, { quality: 0.92, maxWidth: 1024, maxHeight: 1024 });
+      setAvatarSrc(res.dataUrl);
+      toast.success(
+        `Profile photo converted to High-Quality WebP (${res.savedPercentage}% saved • ${res.width}×${res.height})`,
+        { id: "avatar-upload" }
+      );
+    } catch {
+      toast.error("Failed to convert avatar image");
+    } finally {
+      setIsConvertingAvatar(false);
+    }
+  };
 
   const [profile, setProfile] = useState({
     name: "Russell Super Admin",
     title: "Chief Technology Administrator",
-    email: "admin@russelltech.com",
+    email: "admin@russelltechnologies.org",
     phone: "+234 812 345 6789",
     timezone: "Africa/Lagos (WAT, UTC+1)",
     bio: "Lead administrator and platform operations supervisor overseeing Russell Technologies web3 architectures.",
@@ -72,16 +98,29 @@ export function AdminProfilePage() {
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-5">
               <div className="relative">
+                <input
+                  type="file"
+                  ref={avatarInputRef}
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files?.[0]) {
+                      handleAvatarUpload(e.target.files[0]);
+                      e.target.value = "";
+                    }
+                  }}
+                />
                 <img
-                  src={avatar1}
+                  src={avatarSrc}
                   alt={profile.name}
                   className="size-20 rounded-2xl object-cover border-4 border-slate-100 shadow-md"
                 />
                 <button
                   type="button"
-                  title="Upload New Photo"
-                  onClick={() => toast.info("Avatar uploader: Select an image file")}
-                  className="absolute -bottom-1.5 -right-1.5 grid size-7 place-items-center rounded-lg bg-primary text-white shadow hover:bg-blue-600 transition"
+                  title="Upload New Photo (Auto-WebP)"
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={isConvertingAvatar}
+                  className="absolute -bottom-1.5 -right-1.5 grid size-7 place-items-center rounded-lg bg-primary text-white shadow hover:bg-blue-600 transition cursor-pointer"
                 >
                   <Camera className="size-3.5" />
                 </button>

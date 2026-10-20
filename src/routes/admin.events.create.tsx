@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   ChevronLeft,
   Eye,
@@ -28,12 +28,15 @@ import {
   FileText,
   Users,
   Settings,
+  Sparkles,
 } from "lucide-react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import artistImg from "@/assets/artist.jpg";
-import meetingImg from "@/assets/meeting.jpg";
-import studentImg from "@/assets/student.jpg";
+import artistImg from "@/assets/artist.webp";
+import meetingImg from "@/assets/meeting.webp";
+import studentImg from "@/assets/student.webp";
 import { meta } from "@/components/site/blocks";
+import { convertImageToWebP } from "@/lib/image-utils";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/events/create")({
   head: () => meta("Create New Event — Admin Dashboard", "Configure and publish upcoming events."),
@@ -58,6 +61,46 @@ export function AdminCreateEventPage() {
   const [tags, setTags] = useState<string[]>(["conference", "technology"]);
   const [newTag, setNewTag] = useState("");
   const [published, setPublished] = useState(false);
+  const [bannerImage, setBannerImage] = useState<string>(artistImg);
+  const [galleryImages, setGalleryImages] = useState<string[]>([meetingImg, studentImg]);
+  const [isConvertingBanner, setIsConvertingBanner] = useState(false);
+
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+
+  const handleBannerUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image file");
+      return;
+    }
+    try {
+      setIsConvertingBanner(true);
+      toast.loading(`Converting banner to High-Quality WebP...`, { id: "banner-img" });
+      const res = await convertImageToWebP(file, { quality: 0.92 });
+      setBannerImage(res.dataUrl);
+      toast.success(`Banner converted to High-Quality WebP (${res.savedPercentage}% saved)`, { id: "banner-img" });
+    } catch {
+      toast.error("Failed to convert banner image");
+    } finally {
+      setIsConvertingBanner(false);
+    }
+  };
+
+  const handleGalleryUpload = async (files: FileList | File[]) => {
+    const arr = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    if (arr.length === 0) return;
+
+    for (const f of arr) {
+      try {
+        toast.loading(`Converting ${f.name} to WebP...`, { id: f.name });
+        const res = await convertImageToWebP(f, { quality: 0.92 });
+        setGalleryImages((prev) => [...prev, res.dataUrl]);
+        toast.success(`Added ${res.name} (WebP)`, { id: f.name });
+      } catch {
+        toast.error(`Failed to process ${f.name}`);
+      }
+    }
+  };
 
   const handleAddTag = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && newTag.trim()) {
@@ -224,26 +267,59 @@ export function AdminCreateEventPage() {
               <ImageIcon className="size-4 text-blue-600" /> Featured Image
             </h3>
 
+            {/* HIDDEN BANNER INPUT */}
+            <input
+              type="file"
+              ref={bannerInputRef}
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                if (e.target.files?.[0]) {
+                  handleBannerUpload(e.target.files[0]);
+                  e.target.value = "";
+                }
+              }}
+            />
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
-              <div className="border-2 border-dashed border-slate-200 hover:border-blue-500 rounded-2xl p-6 text-center transition flex flex-col items-center justify-center bg-slate-50/50">
-                <Upload className="size-6 text-blue-600 mb-1" />
+              <div
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (e.dataTransfer.files?.[0]) handleBannerUpload(e.dataTransfer.files[0]);
+                }}
+                onClick={() => bannerInputRef.current?.click()}
+                className="border-2 border-dashed border-slate-200 hover:border-blue-500 rounded-2xl p-6 text-center transition flex flex-col items-center justify-center bg-slate-50/50 cursor-pointer group"
+              >
+                <div className="size-10 rounded-xl bg-blue-50 group-hover:bg-blue-100 text-blue-600 flex items-center justify-center mb-2 transition">
+                  <Upload className="size-5" />
+                </div>
                 <p className="text-xs font-bold text-slate-700">
-                  Drag and drop an image here, or <span className="text-blue-600 cursor-pointer">click to upload</span>
+                  Drag and drop an image here, or <span className="text-blue-600">click to upload</span>
                 </p>
-                <p className="text-[11px] text-slate-400 mt-1">Supports JPG, PNG, WEBP (Max 5MB)</p>
-                <button className="mt-3 px-4 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition">
-                  Upload Image
+                <div className="mt-1 flex items-center gap-1 justify-center">
+                  <span className="text-[10px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                    <Sparkles className="size-2.5" /> Converts to WebP
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1">Supports JPG, PNG, WEBP (Auto-optimized)</p>
+                <button
+                  type="button"
+                  disabled={isConvertingBanner}
+                  className="mt-3 px-4 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-2xs pointer-events-none"
+                >
+                  {isConvertingBanner ? "Converting..." : "Upload Image"}
                 </button>
               </div>
 
               <div className="relative rounded-2xl overflow-hidden border border-slate-100">
-                <img src={artistImg} alt="Event banner preview" className="w-full h-40 object-cover" />
+                <img src={bannerImage} alt="Event banner preview" className="w-full h-40 object-cover" />
                 <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
-                  <button className="px-2.5 py-1 rounded-lg bg-white/90 backdrop-blur-xs text-xs font-bold text-slate-700 shadow-sm flex items-center gap-1">
-                    <Edit2 className="size-3" /> Edit
-                  </button>
-                  <button className="p-1 rounded-lg bg-white/90 backdrop-blur-xs text-rose-600 shadow-sm">
-                    <Trash2 className="size-3.5" />
+                  <button
+                    onClick={() => bannerInputRef.current?.click()}
+                    className="px-2.5 py-1 rounded-lg bg-white/90 backdrop-blur-xs text-xs font-bold text-slate-700 shadow-sm flex items-center gap-1 hover:bg-white"
+                  >
+                    <Edit2 className="size-3" /> Change (WebP)
                   </button>
                 </div>
               </div>
@@ -253,25 +329,61 @@ export function AdminCreateEventPage() {
           {/* GALLERY CARD */}
           <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.03)] space-y-3">
             <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2">
-              <ImageIcon className="size-4 text-blue-600" /> Gallery (Optional)
+              <ImageIcon className="size-4 text-blue-600" /> Gallery ({galleryImages.length} images)
             </h3>
 
+            {/* HIDDEN GALLERY INPUT */}
+            <input
+              type="file"
+              ref={galleryInputRef}
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                if (e.target.files) {
+                  handleGalleryUpload(e.target.files);
+                  e.target.value = "";
+                }
+              }}
+            />
+
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-              <div className="sm:col-span-2 border-2 border-dashed border-slate-200 rounded-xl p-4 text-center flex flex-col items-center justify-center bg-slate-50/50">
+              <div
+                onClick={() => galleryInputRef.current?.click()}
+                className="sm:col-span-2 border-2 border-dashed border-slate-200 hover:border-blue-400 rounded-xl p-4 text-center flex flex-col items-center justify-center bg-slate-50/50 cursor-pointer transition"
+              >
                 <Upload className="size-5 text-blue-600 mb-1" />
                 <p className="text-[11px] font-bold text-slate-700">Add more images for event gallery</p>
-                <button className="mt-2 px-3 py-1 bg-white border border-slate-200 text-[11px] font-semibold rounded-lg">
+                <div className="mt-1">
+                  <span className="text-[9px] font-bold text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5">
+                    <Sparkles className="size-2" /> Auto WebP
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className="mt-2 px-3 py-1 bg-white border border-slate-200 text-[11px] font-semibold rounded-lg pointer-events-none"
+                >
                   Upload Images
                 </button>
               </div>
 
-              <div className="rounded-xl overflow-hidden border border-slate-100 h-24">
-                <img src={meetingImg} alt="Gallery 1" className="w-full h-full object-cover" />
-              </div>
-              <div className="rounded-xl overflow-hidden border border-slate-100 h-24">
-                <img src={studentImg} alt="Gallery 2" className="w-full h-full object-cover" />
-              </div>
-              <div className="border border-dashed border-slate-200 rounded-xl h-24 flex flex-col items-center justify-center text-slate-400 hover:text-blue-600 cursor-pointer">
+              {galleryImages.map((src, idx) => (
+                <div key={idx} className="relative rounded-xl overflow-hidden border border-slate-100 h-24 group">
+                  <img src={src} alt={`Gallery ${idx + 1}`} className="w-full h-full object-cover" />
+                  <button
+                    onClick={() => setGalleryImages((prev) => prev.filter((_, i) => i !== idx))}
+                    className="absolute top-1 right-1 size-6 rounded-md bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                    title="Remove"
+                  >
+                    <Trash2 className="size-3" />
+                  </button>
+                </div>
+              ))}
+
+              <div
+                onClick={() => galleryInputRef.current?.click()}
+                className="border border-dashed border-slate-200 rounded-xl h-24 flex flex-col items-center justify-center text-slate-400 hover:text-blue-600 hover:border-blue-400 cursor-pointer transition"
+              >
                 <Plus className="size-5" />
                 <span className="text-[10px] font-bold mt-1">Add More</span>
               </div>

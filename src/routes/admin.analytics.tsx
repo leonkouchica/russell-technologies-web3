@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import {
   Eye,
   Users,
@@ -14,6 +15,8 @@ import {
   Clock,
   Calendar,
   Layers,
+  FileSpreadsheet,
+  Printer,
 } from "lucide-react";
 import {
   AreaChart,
@@ -34,13 +37,15 @@ import {
   AdminStatCard,
   AdminDateFilter,
 } from "@/components/admin/AdminComponents";
-import studentImg from "@/assets/student.jpg";
-import farmerImg from "@/assets/farmer.jpg";
-import meetingImg from "@/assets/meeting.jpg";
-import dataImg from "@/assets/data.jpg";
-import buildingImg from "@/assets/building.jpg";
-import africaMap from "@/assets/africa-map.png";
+import studentImg from "@/assets/student.webp";
+import farmerImg from "@/assets/farmer.webp";
+import meetingImg from "@/assets/meeting.webp";
+import dataImg from "@/assets/data.webp";
+import buildingImg from "@/assets/building.webp";
+import africaMap from "@/assets/africa-map.webp";
 import { meta } from "@/components/site/blocks";
+import { exportToCsv, exportToPdf } from "@/lib/export-utils";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/analytics")({
   head: () => meta("Analytics — Admin Dashboard", "Real-time metrics, audience data, and engagement trends."),
@@ -89,6 +94,38 @@ const dailySignupsData = [
 ];
 
 function AdminAnalyticsPage() {
+  const handleExportCsv = () => {
+    try {
+      exportToCsv("russell_analytics_traffic_report", trafficData, [
+        { header: "Date", key: "date" },
+        { header: "Page Views", key: "pageViews" },
+        { header: "Unique Visitors", key: "visitors" },
+      ]);
+      toast.success("Analytics data exported to CSV!");
+    } catch {
+      toast.error("Failed to export analytics data");
+    }
+  };
+
+  const handleExportPdf = () => {
+    try {
+      exportToPdf({
+        title: "Traffic & Performance Executive Analytics",
+        subtitle: "Monthly web traffic, engagement and visitor metrics for Russell Technologies",
+        tableHeaders: ["Date Period", "Page Views", "Unique Visitors", "Estimated Bounce Rate"],
+        tableRows: trafficData.map((d) => [
+          d.date,
+          d.pageViews.toLocaleString(),
+          d.visitors.toLocaleString(),
+          "38.4%",
+        ]),
+      });
+      toast.success("Generating print-ready Analytics PDF preview...");
+    } catch {
+      toast.error("Failed to generate PDF");
+    }
+  };
+
   return (
     <AdminLayout>
       {/* HEADER */}
@@ -105,8 +142,24 @@ function AdminAnalyticsPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
           <AdminDateFilter dateText="Sep 1, 2026 – Sep 30, 2026" />
+          <button
+            onClick={handleExportCsv}
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl shadow-2xs transition"
+            title="Download Traffic CSV"
+          >
+            <FileSpreadsheet className="size-3.5 text-emerald-600" />
+            <span>CSV</span>
+          </button>
+          <button
+            onClick={handleExportPdf}
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl shadow-2xs transition"
+            title="Print or Export PDF"
+          >
+            <Printer className="size-3.5 text-blue-600" />
+            <span>PDF</span>
+          </button>
           <select className="text-xs font-semibold bg-white border border-slate-200 text-slate-700 rounded-xl px-3 py-2 focus:outline-hidden">
             <option>Last 30 days</option>
             <option>Last 90 days</option>

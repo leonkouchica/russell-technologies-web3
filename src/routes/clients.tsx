@@ -1,13 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef } from "react";
 import { ArrowLeft, ArrowRight, BarChart3, Building2, Car, CheckCircle2, Flame, Flower2, Gem, Globe2, GraduationCap, Handshake, Landmark, Layers, Leaf, School, Scale, Sprout, Users } from "lucide-react";
-import heroImg from "@/assets/clients-handshake.jpg";
-import student from "@/assets/student.jpg";
-import farmer from "@/assets/farmer.jpg";
-import artist from "@/assets/artist.jpg";
-import av1 from "@/assets/avatar-1.jpg";
-import av2 from "@/assets/avatar-2.jpg";
-import av3 from "@/assets/avatar-3.jpg";
+import heroImg from "@/assets/clients-handshake.webp";
+import student from "@/assets/student.webp";
+import farmer from "@/assets/farmer.webp";
+import artist from "@/assets/artist.webp";
+import av1 from "@/assets/avatar-1.webp";
+import av2 from "@/assets/avatar-2.webp";
+import av3 from "@/assets/avatar-3.webp";
 import { meta } from "@/components/site/blocks";
 import { BlueCta, Btn, FloatCard, LineEyebrow, SplitHero, TestimonialCard } from "@/components/site/kit";
 

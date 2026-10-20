@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   ChevronLeft,
   ExternalLink,
@@ -32,9 +32,11 @@ import {
 } from "lucide-react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { AdminStatusBadge } from "@/components/admin/AdminComponents";
-import buildingImg from "@/assets/building.jpg";
-import meetingImg from "@/assets/meeting.jpg";
+import buildingImg from "@/assets/building.webp";
+import meetingImg from "@/assets/meeting.webp";
 import { meta } from "@/components/site/blocks";
+import { convertImageToWebP } from "@/lib/image-utils";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/web-pages/edit")({
   head: () => meta("Edit Web Page — Admin Dashboard", "Customize layout, content and settings for web pages."),
@@ -48,6 +50,30 @@ export function AdminEditWebPage() {
   const [status, setStatus] = useState("Published");
   const [pageType, setPageType] = useState("Standard Page");
   const [parentPage, setParentPage] = useState("None (Top Level)");
+  const [pageImage, setPageImage] = useState<string | null>(buildingImg);
+  const [isConvertingImage, setIsConvertingImage] = useState(false);
+  const pageImageInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePageImageUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image file");
+      return;
+    }
+    try {
+      setIsConvertingImage(true);
+      toast.loading("Converting page image to High-Quality WebP...", { id: "page-img" });
+      const res = await convertImageToWebP(file, { quality: 0.92 });
+      setPageImage(res.dataUrl);
+      toast.success(
+        `Image converted to High-Quality WebP (${res.savedPercentage}% saved • ${res.width}×${res.height})`,
+        { id: "page-img" }
+      );
+    } catch {
+      toast.error("Failed to convert image");
+    } finally {
+      setIsConvertingImage(false);
+    }
+  };
   const [template, setTemplate] = useState("Default Template");
   const [showInNav, setShowInNav] = useState(true);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -141,7 +167,7 @@ export function AdminEditWebPage() {
             <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
               <div className="flex items-center gap-1 text-slate-500">
                 <LinkIcon className="size-3.5 text-blue-600" />
-                <span className="font-semibold text-blue-600">https://russelltech.com/{slug}</span>
+                <span className="font-semibold text-blue-600">https://russelltechnologies.org/{slug}</span>
               </div>
               <button className="text-xs font-bold text-blue-600 hover:text-blue-700">Edit</button>
             </div>
@@ -472,34 +498,74 @@ export function AdminEditWebPage() {
 
           {/* FEATURED IMAGE CARD */}
           <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.03)] space-y-3">
-            <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2">
-              <ImageIcon className="size-4 text-blue-600" /> Featured Image
-            </h3>
-
-            <div className="rounded-xl overflow-hidden border border-slate-100 relative group">
-              <img
-                src={buildingImg}
-                alt="Featured preview"
-                className="w-full h-36 object-cover"
-              />
-              <button
-                className="absolute top-2.5 right-2.5 size-7 rounded-full bg-white text-rose-600 shadow-md flex items-center justify-center hover:bg-rose-50"
-                title="Remove"
-              >
-                <Trash2 className="size-3.5" />
-              </button>
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2">
+                <ImageIcon className="size-4 text-blue-600" /> Featured Image
+              </h3>
+              <span className="text-[10px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                <Sparkles className="size-2.5" /> WebP
+              </span>
             </div>
 
+            <input
+              type="file"
+              ref={pageImageInputRef}
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                if (e.target.files?.[0]) {
+                  handlePageImageUpload(e.target.files[0]);
+                  e.target.value = "";
+                }
+              }}
+            />
+
+            {pageImage ? (
+              <div className="rounded-xl overflow-hidden border border-slate-100 relative group">
+                <img
+                  src={pageImage}
+                  alt="Featured preview"
+                  className="w-full h-36 object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => setPageImage(null)}
+                  className="absolute top-2.5 right-2.5 size-7 rounded-full bg-white text-rose-600 shadow-md flex items-center justify-center hover:bg-rose-50 cursor-pointer"
+                  title="Remove"
+                >
+                  <Trash2 className="size-3.5" />
+                </button>
+              </div>
+            ) : (
+              <div
+                onClick={() => pageImageInputRef.current?.click()}
+                className="w-full h-36 rounded-xl border-2 border-dashed border-slate-200 hover:border-blue-400 bg-slate-50 flex flex-col items-center justify-center cursor-pointer transition"
+              >
+                <Upload className="size-5 text-slate-400 mb-1" />
+                <span className="text-xs font-semibold text-slate-600">Click to upload image</span>
+                <span className="text-[10px] text-slate-400">Converts to WebP</span>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-2 pt-1">
-              <button className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition flex items-center justify-center gap-1">
-                <Upload className="size-3" /> Replace Image
+              <button
+                type="button"
+                onClick={() => pageImageInputRef.current?.click()}
+                disabled={isConvertingImage}
+                className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition flex items-center justify-center gap-1 cursor-pointer"
+              >
+                <Upload className="size-3" /> {isConvertingImage ? "Converting..." : "Replace Image"}
               </button>
-              <button className="px-3 py-2 rounded-xl border border-rose-200 text-rose-600 text-xs font-semibold hover:bg-rose-50 transition flex items-center justify-center gap-1">
+              <button
+                type="button"
+                onClick={() => setPageImage(null)}
+                className="px-3 py-2 rounded-xl border border-rose-200 text-rose-600 text-xs font-semibold hover:bg-rose-50 transition flex items-center justify-center gap-1 cursor-pointer"
+              >
                 <Trash2 className="size-3" /> Remove
               </button>
             </div>
             <p className="text-[10px] text-slate-400 text-center">
-              Recommended size: 1200 x 630 px (JPG, PNG, WebP)
+              Recommended: 1200 x 630 px • Auto-converts to WebP on upload
             </p>
           </div>
         </div>

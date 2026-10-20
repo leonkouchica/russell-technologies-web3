@@ -2,11 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight, BarChart3, Bot, CheckCircle2, Code2, FileText, Gauge, Headphones, Layers, Lock, Play, Rocket, Search, Settings, Smartphone, Smile, Target, Timer, TrendingUp, Wrench,
 } from "lucide-react";
-import heroImg from "@/assets/services-hero.jpg";
-import building from "@/assets/building.jpg";
-import logistics from "@/assets/logistics.jpg";
-import healthcare from "@/assets/healthcare.jpg";
-import classroom from "@/assets/classroom.jpg";
+import heroImg from "@/assets/services-hero.webp";
+import building from "@/assets/building.webp";
+import logistics from "@/assets/logistics.webp";
+import healthcare from "@/assets/healthcare.webp";
+import classroom from "@/assets/classroom.webp";
 import { services } from "@/lib/site-data";
 import { CtaBand, meta } from "@/components/site/blocks";
 

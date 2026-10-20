@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   ChevronLeft,
   Eye,
@@ -23,11 +23,14 @@ import {
   FileText,
   Search,
   CheckCircle2,
+  Sparkles,
 } from "lucide-react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import studentImg from "@/assets/student.jpg";
+import studentImg from "@/assets/student.webp";
 import { adminCurrentUser } from "@/lib/admin-data";
 import { meta } from "@/components/site/blocks";
+import { convertImageToWebP } from "@/lib/image-utils";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/blog-posts/create")({
   head: () => meta("Create New Blog Post — Admin Dashboard", "Draft and publish new blog articles."),
@@ -50,6 +53,30 @@ export function AdminCreateBlogPostPage() {
   const [allowIndexing, setAllowIndexing] = useState(true);
   const [featuredImage, setFeaturedImage] = useState<string | null>(studentImg);
   const [isPublished, setIsPublished] = useState(false);
+  const [isConverting, setIsConverting] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageFile = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image file (PNG, JPG, WEBP, etc.)");
+      return;
+    }
+    try {
+      setIsConverting(true);
+      toast.loading(`Converting ${file.name} to High-Quality WebP...`, { id: "blog-img" });
+      const res = await convertImageToWebP(file, { quality: 0.92 });
+      setFeaturedImage(res.dataUrl);
+      toast.success(
+        `Converted to High-Quality WebP • ${res.savedPercentage}% smaller (${res.width}×${res.height})`,
+        { id: "blog-img" }
+      );
+    } catch {
+      toast.error("Failed to convert image to WebP");
+    } finally {
+      setIsConverting(false);
+    }
+  };
 
   const handleAddTag = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && newTag.trim()) {
@@ -153,7 +180,7 @@ export function AdminCreateBlogPostPage() {
               <span className="font-bold text-blue-600 flex items-center gap-1">
                 <LinkIcon className="size-3.5" /> Permalink:
               </span>
-              <span className="text-slate-500">https://russelltech.com/blog/</span>
+              <span className="text-slate-500">https://russelltechnologies.org/blog/</span>
               <input
                 type="text"
                 value={slug}
@@ -245,17 +272,48 @@ export function AdminCreateBlogPostPage() {
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+              {/* HIDDEN INPUT */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  if (e.target.files?.[0]) {
+                    handleImageFile(e.target.files[0]);
+                    e.target.value = "";
+                  }
+                }}
+              />
+
               {/* DROPZONE */}
-              <div className="border-2 border-dashed border-slate-200 hover:border-blue-500 rounded-2xl p-6 text-center transition flex flex-col items-center justify-center bg-slate-50/50">
-                <div className="size-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-2">
+              <div
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (e.dataTransfer.files?.[0]) handleImageFile(e.dataTransfer.files[0]);
+                }}
+                onClick={() => fileInputRef.current?.click()}
+                className="border-2 border-dashed border-slate-200 hover:border-blue-500 rounded-2xl p-6 text-center transition flex flex-col items-center justify-center bg-slate-50/50 cursor-pointer group"
+              >
+                <div className="size-10 rounded-xl bg-blue-50 group-hover:bg-blue-100 text-blue-600 flex items-center justify-center mb-2 transition">
                   <Upload className="size-5" />
                 </div>
                 <p className="text-xs font-bold text-slate-700">
-                  Drag and drop an image here, or <span className="text-blue-600 cursor-pointer">click to upload</span>
+                  Drag and drop an image here, or <span className="text-blue-600">click to upload</span>
                 </p>
-                <p className="text-[11px] text-slate-400 mt-1">Supports JPG, PNG, WEBP (Max 5MB)</p>
-                <button className="mt-3 px-4 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-2xs">
-                  Upload Image
+                <div className="mt-1 flex items-center gap-1 justify-center">
+                  <span className="text-[10px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                    <Sparkles className="size-2.5" /> Converts to WebP
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1">Supports JPG, PNG, WEBP (Auto-optimized)</p>
+                <button
+                  type="button"
+                  disabled={isConverting}
+                  className="mt-3 px-4 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-2xs pointer-events-none"
+                >
+                  {isConverting ? "Converting..." : "Select Image"}
                 </button>
               </div>
 

@@ -13,7 +13,7 @@ import {
   CheckCircle2,
   HelpCircle,
 } from "lucide-react";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/logo.webp";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -29,7 +29,7 @@ export const Route = createFileRoute("/admin/login")({
 
 export function AdminLoginPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("admin@russelltech.com");
+  const [email, setEmail] = useState("admin@russelltechnologies.org");
   const [password, setPassword] = useState("admin2026");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
@@ -111,7 +111,7 @@ export function AdminLoginPage() {
             <KeyRound className="size-4 text-blue-400 shrink-0 mt-0.5" />
             <div className="leading-relaxed">
               <span className="font-semibold text-blue-300">Demo Access Credentials:</span><br />
-              <span className="text-[11px] font-mono text-slate-300">admin@russelltech.com / admin2026</span>
+              <span className="text-[11px] font-mono text-slate-300">admin@russelltechnologies.org / admin2026</span>
             </div>
           </div>
 
@@ -128,7 +128,7 @@ export function AdminLoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@russelltech.com"
+                  placeholder="admin@russelltechnologies.org"
                   className="w-full rounded-xl border border-slate-700 bg-slate-900/80 py-2.5 pl-10 pr-4 text-xs text-white placeholder:text-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition"
                 />
               </div>
@@ -250,7 +250,7 @@ export function AdminLoginPage() {
                     required
                     value={forgotEmail}
                     onChange={(e) => setForgotEmail(e.target.value)}
-                    placeholder="admin@russelltech.com"
+                    placeholder="admin@russelltechnologies.org"
                     className="w-full rounded-xl border border-slate-700 bg-slate-900 py-2.5 px-3 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
                 </div>

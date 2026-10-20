@@ -3,7 +3,7 @@ import { useState } from "react";
 import { ArrowRight, ChevronDown, Menu, X } from "lucide-react";
 import { HeaderTools } from "./HeaderTools";
 import { Button } from "@/components/ui/button";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/logo.webp";
 import { products, services } from "@/lib/site-data";
 
 const linkCls = "text-sm font-semibold text-foreground/80 hover:text-primary transition-colors";

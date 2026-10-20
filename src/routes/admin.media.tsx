@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Upload,
   Search,
@@ -21,11 +21,14 @@ import {
   X,
   Play,
   Check,
+  Sparkles,
 } from "lucide-react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { AdminStatCard } from "@/components/admin/AdminComponents";
 import { adminMediaFiles, AdminMediaFile } from "@/lib/admin-data";
 import { meta } from "@/components/site/blocks";
+import { convertImageToWebP, formatBytes } from "@/lib/image-utils";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/media")({
   head: () => meta("Media Library — Admin Dashboard", "Asset management, media uploads and file storage."),
@@ -33,14 +36,20 @@ export const Route = createFileRoute("/admin/media")({
 });
 
 function AdminMediaPage() {
+  const [mediaList, setMediaList] = useState<AdminMediaFile[]>(adminMediaFiles);
   const [selectedFile, setSelectedFile] = useState<AdminMediaFile>(adminMediaFiles[0]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState("all");
   const [selectedFolder, setSelectedFolder] = useState("all");
   const [copiedUrl, setCopiedUrl] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
 
-  const filteredFiles = adminMediaFiles.filter((f) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const replaceInputRef = useRef<HTMLInputElement>(null);
+
+  const filteredFiles = mediaList.filter((f) => {
     if (selectedType !== "all" && f.format !== selectedType) return false;
     if (selectedFolder !== "all" && f.folder !== selectedFolder) return false;
     if (searchQuery.trim() !== "") {
@@ -62,8 +71,129 @@ function AdminMediaPage() {
     setTimeout(() => setCopiedUrl(false), 2000);
   };
 
+  const processAndUploadFiles = async (files: FileList | File[]) => {
+    const fileArray = Array.from(files);
+    if (fileArray.length === 0) return;
+
+    setIsUploading(true);
+    const newItems: AdminMediaFile[] = [];
+
+    for (const file of fileArray) {
+      try {
+        if (file.type.startsWith("image/")) {
+          toast.loading(`Converting ${file.name} to High-Quality WebP...`, { id: file.name });
+          const res = await convertImageToWebP(file, { quality: 0.92 });
+          toast.success(
+            `Converted & uploaded ${res.name} (High-Quality WebP • ${res.savedPercentage}% smaller)`,
+            { id: file.name }
+          );
+
+          const newItem: AdminMediaFile = {
+            id: `med-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+            title: res.name,
+            filename: res.name,
+            format: "WEBP",
+            size: formatBytes(res.webpSize),
+            dimensions: `${res.width} × ${res.height}`,
+            folder: "Company Images",
+            uploadedDate: "Just now",
+            uploadedBy: "Admin",
+            url: res.dataUrl,
+            thumbnail: res.dataUrl,
+            altText: res.name.replace(".webp", ""),
+            caption: `WebP converted asset (${formatBytes(res.webpSize)})`,
+            tags: ["webp", "image", "upload"],
+          };
+          newItems.push(newItem);
+        } else {
+          // Non-image files (documents, videos)
+          const newItem: AdminMediaFile = {
+            id: `med-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+            title: file.name,
+            filename: file.name,
+            format: file.name.split(".").pop()?.toUpperCase() || "FILE",
+            size: formatBytes(file.size),
+            folder: file.type.startsWith("video/") ? "Videos" : "Documents",
+            uploadedDate: "Just now",
+            uploadedBy: "Admin",
+            url: URL.createObjectURL(file),
+            thumbnail: selectedFile.thumbnail,
+            altText: file.name,
+            caption: "Uploaded file",
+            tags: ["upload"],
+          };
+          newItems.push(newItem);
+          toast.success(`Uploaded ${file.name}`);
+        }
+      } catch (err) {
+        toast.error(`Failed to process ${file.name}`);
+      }
+    }
+
+    if (newItems.length > 0) {
+      setMediaList((prev) => [...newItems, ...prev]);
+      setSelectedFile(newItems[0]);
+    }
+    setIsUploading(false);
+  };
+
+  const handleReplaceFile = async (file: File) => {
+    if (!selectedFile) return;
+    try {
+      if (file.type.startsWith("image/")) {
+        toast.loading(`Converting replacement image to High-Quality WebP...`, { id: "replace" });
+        const res = await convertImageToWebP(file, { quality: 0.92 });
+        toast.success(`Replaced with high-quality WebP (${res.savedPercentage}% saved)`, { id: "replace" });
+
+        const updated: AdminMediaFile = {
+          ...selectedFile,
+          title: res.name,
+          filename: res.name,
+          format: "WEBP",
+          size: formatBytes(res.webpSize),
+          dimensions: `${res.width} × ${res.height}`,
+          thumbnail: res.dataUrl,
+          url: res.dataUrl,
+          uploadedDate: "Just now",
+        };
+
+        setMediaList((prev) => prev.map((f) => (f.id === selectedFile.id ? updated : f)));
+        setSelectedFile(updated);
+      }
+    } catch {
+      toast.error("Failed to replace image");
+    }
+  };
+
   return (
     <AdminLayout>
+      {/* HIDDEN FILE INPUTS */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept="image/*,video/*,application/pdf"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files) {
+            processAndUploadFiles(e.target.files);
+            e.target.value = "";
+          }
+        }}
+      />
+      <input
+        type="file"
+        ref={replaceInputRef}
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files?.[0]) {
+            handleReplaceFile(e.target.files[0]);
+            e.target.value = "";
+          }
+        }}
+      />
+
       {/* HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-start gap-3">
@@ -79,11 +209,57 @@ function AdminMediaPage() {
         </div>
 
         <button
-          onClick={() => alert("Upload dialog opened. Supports JPG, PNG, PDF, MP4")}
-          className="inline-flex items-center justify-center gap-2 bg-[#0062ff] hover:bg-blue-600 text-white font-bold text-sm px-5 py-2.5 rounded-xl shadow-xs transition shrink-0"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isUploading}
+          className="inline-flex items-center justify-center gap-2 bg-[#0062ff] hover:bg-blue-600 text-white font-bold text-sm px-5 py-2.5 rounded-xl shadow-xs transition shrink-0 disabled:opacity-60 cursor-pointer"
         >
           <Upload className="size-4" />
-          <span>Upload Files</span>
+          <span>{isUploading ? "Converting to WebP..." : "Upload Files"}</span>
+        </button>
+      </div>
+
+      {/* DRAG & DROP UPLOAD ZONE WITH AUTO-WEBP HIGHLIGHT */}
+      <div
+        onDragOver={(e) => {
+          e.preventDefault();
+          setIsDragOver(true);
+        }}
+        onDragLeave={() => setIsDragOver(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setIsDragOver(false);
+          if (e.dataTransfer.files) processAndUploadFiles(e.dataTransfer.files);
+        }}
+        onClick={() => fileInputRef.current?.click()}
+        className={`mb-6 p-4 rounded-2xl border-2 border-dashed transition cursor-pointer flex flex-col sm:flex-row items-center justify-between gap-3 ${
+          isDragOver
+            ? "border-blue-600 bg-blue-50/80 scale-[1.005]"
+            : "border-blue-200/80 bg-gradient-to-r from-blue-50/50 via-white to-indigo-50/30 hover:border-blue-400"
+        }`}
+      >
+        <div className="flex items-center gap-3">
+          <div className="size-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-sm shrink-0">
+            <Upload className="size-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-800">
+                Drag & drop files here, or click to browse
+              </span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">
+                <Sparkles className="size-3" /> Auto WebP Conversion
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              All images (JPG, PNG, GIF, BMP) are automatically converted into pristine, high-quality WebP format for fast web delivery.
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          className="px-4 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-2xs shrink-0 pointer-events-none"
+        >
+          Select Files
         </button>
       </div>
 
@@ -91,7 +267,7 @@ function AdminMediaPage() {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 mb-6">
         <AdminStatCard
           title="All Files"
-          value={428}
+          value={mediaList.length}
           note="+12% this month"
           icon={FileText}
           iconBgColor="bg-blue-50"
@@ -99,15 +275,15 @@ function AdminMediaPage() {
         />
         <AdminStatCard
           title="Images"
-          value={312}
-          note="73% of total"
+          value={mediaList.filter((f) => f.format === "WEBP" || f.format === "JPG" || f.format === "PNG").length}
+          note="Optimized WebP"
           icon={ImageIcon}
           iconBgColor="bg-emerald-50"
           iconColor="text-emerald-600"
         />
         <AdminStatCard
           title="Videos"
-          value={48}
+          value={mediaList.filter((f) => f.format === "MP4").length}
           note="11% of total"
           icon={Video}
           iconBgColor="bg-purple-50"
@@ -115,7 +291,7 @@ function AdminMediaPage() {
         />
         <AdminStatCard
           title="Documents"
-          value={52}
+          value={mediaList.filter((f) => f.format === "PDF").length}
           note="12% of total"
           icon={FileCheck}
           iconBgColor="bg-sky-50"
@@ -123,7 +299,7 @@ function AdminMediaPage() {
         />
         <AdminStatCard
           title="Others"
-          value={16}
+          value={mediaList.filter((f) => !["WEBP", "JPG", "PNG", "MP4", "PDF"].includes(f.format)).length}
           note="4% of total"
           icon={FileText}
           iconBgColor="bg-amber-50"
@@ -154,6 +330,7 @@ function AdminMediaPage() {
                 className="text-xs font-medium bg-slate-50 border border-slate-200 text-slate-700 rounded-xl px-3 py-2"
               >
                 <option value="all">All File Types</option>
+                <option value="WEBP">WEBP (High Quality)</option>
                 <option value="JPG">JPG</option>
                 <option value="PNG">PNG</option>
                 <option value="MP4">MP4</option>
@@ -428,16 +605,32 @@ function AdminMediaPage() {
 
             {/* BUTTONS */}
             <div className="grid grid-cols-2 gap-2 pt-1">
-              <button className="py-2 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 flex items-center justify-center gap-1.5 shadow-2xs">
+              <button
+                onClick={() => {
+                  const link = document.createElement("a");
+                  link.href = selectedFile.url;
+                  link.download = selectedFile.filename;
+                  link.click();
+                }}
+                className="py-2 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 flex items-center justify-center gap-1.5 shadow-2xs"
+              >
                 <Download className="size-3.5" /> Download
               </button>
-              <button className="py-2 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 flex items-center justify-center gap-1.5 shadow-2xs">
-                <RefreshCw className="size-3.5" /> Replace
+              <button
+                onClick={() => replaceInputRef.current?.click()}
+                className="py-2 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 flex items-center justify-center gap-1.5 shadow-2xs"
+              >
+                <RefreshCw className="size-3.5" /> Replace (WebP)
               </button>
             </div>
 
             <button
-              onClick={() => alert(`Deleted file: ${selectedFile.filename}`)}
+              onClick={() => {
+                setMediaList((prev) => prev.filter((f) => f.id !== selectedFile.id));
+                toast.success(`Deleted ${selectedFile.filename}`);
+                const remaining = mediaList.filter((f) => f.id !== selectedFile.id);
+                if (remaining.length > 0) setSelectedFile(remaining[0]);
+              }}
               className="w-full py-2 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-bold flex items-center justify-center gap-1.5 transition"
             >
               <Trash2 className="size-3.5" /> Delete
