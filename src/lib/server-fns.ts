@@ -8,6 +8,16 @@ import { sendEmail, sendBatchEmail } from "./zeptomail";
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
+export function escapeHtml(str: unknown): string {
+  if (str == null) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -91,15 +101,29 @@ export const updateBlogPost = createServerFn({ method: "POST" })
     updates.updated_at = new Date().toISOString();
     const { data: post, error } = await sb.from("blog_posts").update(updates).eq("id", id).select().single();
     if (error) throw new Error(error.message);
+    await sb.from("audit_logs").insert({
+      action: "Updated Blog Post",
+      category: "Content",
+      target: (updates.title as string) ?? id,
+      user_name: (updates.author_name as string) ?? "Admin",
+      status: "Success",
+    });
     return post;
   });
 
 export const deleteBlogPost = createServerFn({ method: "POST" })
-  .validator((input: { id: string }) => input)
+  .validator((input: { id: string; title?: string }) => input)
   .handler(async ({ data }) => {
     const sb = getSupabaseAdmin();
     const { error } = await sb.from("blog_posts").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
+    await sb.from("audit_logs").insert({
+      action: "Deleted Blog Post",
+      category: "Content",
+      target: data.title ?? data.id,
+      user_name: "Admin",
+      status: "Success",
+    });
     return { success: true };
   });
 
@@ -174,15 +198,29 @@ export const updateEvent = createServerFn({ method: "POST" })
     updates.updated_at = new Date().toISOString();
     const { data: event, error } = await sb.from("events").update(updates).eq("id", id).select().single();
     if (error) throw new Error(error.message);
+    await sb.from("audit_logs").insert({
+      action: "Updated Event",
+      category: "Content",
+      target: (updates.title as string) ?? id,
+      user_name: "Admin",
+      status: "Success",
+    });
     return event;
   });
 
 export const deleteEvent = createServerFn({ method: "POST" })
-  .validator((input: { id: string }) => input)
+  .validator((input: { id: string; title?: string }) => input)
   .handler(async ({ data }) => {
     const sb = getSupabaseAdmin();
     const { error } = await sb.from("events").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
+    await sb.from("audit_logs").insert({
+      action: "Deleted Event",
+      category: "Content",
+      target: data.title ?? data.id,
+      user_name: "Admin",
+      status: "Success",
+    });
     return { success: true };
   });
 
@@ -195,9 +233,13 @@ export const registerForEvent = createServerFn({ method: "POST" })
       email: string;
       organization?: string;
       role?: string;
+      _hp?: string;
     }) => input,
   )
   .handler(async ({ data }) => {
+    if (data._hp && data._hp.trim().length > 0) {
+      return { success: true };
+    }
     const sb = getSupabaseAdmin();
     const { data: event } = await sb.from("events").select("title, date_time, location").eq("id", data.eventId).single();
 
@@ -211,17 +253,21 @@ export const registerForEvent = createServerFn({ method: "POST" })
       { onConflict: "email" },
     );
 
+    const safeName = escapeHtml(data.name);
+    const safeTitle = escapeHtml(event?.title ?? "our upcoming event");
+    const safeLocation = escapeHtml(event?.location ?? "Online");
+
     await sendEmail({
       to: [{ email_address: { address: data.email, name: data.name } }],
       subject: `RSVP Confirmed: ${event?.title ?? "Russell Technologies Event"}`,
       htmlbody: `
         <div style="font-family:'Plus Jakarta Sans',Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;padding:40px 20px">
           <h2 style="color:#0f172a;font-size:24px;margin-bottom:16px">You're Registered! 🎉</h2>
-          <p style="color:#475569;font-size:16px;line-height:1.6">Dear ${data.name},</p>
-          <p style="color:#475569;font-size:16px;line-height:1.6">Your RSVP for <strong>${event?.title ?? "our upcoming event"}</strong> is confirmed.</p>
+          <p style="color:#475569;font-size:16px;line-height:1.6">Dear ${safeName},</p>
+          <p style="color:#475569;font-size:16px;line-height:1.6">Your RSVP for <strong>${safeTitle}</strong> is confirmed.</p>
           <div style="margin:24px 0;padding:20px;background:#f8fafc;border-left:4px solid #0062ff;border-radius:6px">
             <p style="margin:0 0 8px 0;font-size:14px;color:#64748b"><strong>Date:</strong> ${event?.date_time ? new Date(event.date_time).toLocaleString() : "TBD"}</p>
-            <p style="margin:0;font-size:14px;color:#64748b"><strong>Location:</strong> ${event?.location ?? "Online"}</p>
+            <p style="margin:0;font-size:14px;color:#64748b"><strong>Location:</strong> ${safeLocation}</p>
           </div>
           <p style="color:#475569;font-size:16px;line-height:1.6">We look forward to having you with us.</p>
           <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0" />
@@ -263,8 +309,16 @@ export const createSubscriber = createServerFn({ method: "POST" })
 
 /** Public newsletter subscribe — sends welcome email via ZeptoMail */
 export const publicSubscribe = createServerFn({ method: "POST" })
-  .validator((input: { name?: string; email: string }) => input)
+  .validator((input: { name?: string; email: string; _hp?: string; _ts?: number }) => input)
   .handler(async ({ data }) => {
+    // Anti-spam protection: honeypot + timing detection
+    if (data._hp && data._hp.trim().length > 0) {
+      return { id: "rejected", email: data.email, status: "Subscribed" };
+    }
+    if (data._ts && Date.now() - data._ts < 800) {
+      return { id: "rejected", email: data.email, status: "Subscribed" };
+    }
+
     const sb = getSupabaseAdmin();
     const { data: sub, error } = await sb
       .from("subscribers")
@@ -273,13 +327,15 @@ export const publicSubscribe = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
 
+    const safeName = escapeHtml(data.name ?? "there");
+
     // Send welcome email via ZeptoMail
     await sendEmail({
       to: [{ email_address: { address: data.email, name: data.name ?? data.email } }],
       subject: "Welcome to Russell Technologies Newsletter 🚀",
       htmlbody: `
         <div style="font-family:'Plus Jakarta Sans',Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;padding:40px 20px">
-          <h2 style="color:#0f172a;font-size:24px;margin-bottom:16px">Welcome aboard, ${data.name ?? "there"}!</h2>
+          <h2 style="color:#0f172a;font-size:24px;margin-bottom:16px">Welcome aboard, ${safeName}!</h2>
           <p style="color:#475569;font-size:16px;line-height:1.6">You're now subscribed to the Russell Technologies newsletter.</p>
           <p style="color:#475569;font-size:16px;line-height:1.6">Expect regular updates on technology, agriculture, music, and innovation across Africa.</p>
           <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0" />
@@ -299,15 +355,29 @@ export const updateSubscriber = createServerFn({ method: "POST" })
     (updates as Record<string, unknown>).updated_at = new Date().toISOString();
     const { data: sub, error } = await sb.from("subscribers").update(updates).eq("id", id).select().single();
     if (error) throw new Error(error.message);
+    await sb.from("audit_logs").insert({
+      action: "Updated Subscriber",
+      category: "Marketing",
+      target: sub.email ?? id,
+      user_name: "Admin",
+      status: "Success",
+    });
     return sub;
   });
 
 export const deleteSubscriber = createServerFn({ method: "POST" })
-  .validator((input: { id: string }) => input)
+  .validator((input: { id: string; email?: string }) => input)
   .handler(async ({ data }) => {
     const sb = getSupabaseAdmin();
     const { error } = await sb.from("subscribers").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
+    await sb.from("audit_logs").insert({
+      action: "Deleted Subscriber",
+      category: "Marketing",
+      target: data.email ?? data.id,
+      user_name: "Admin",
+      status: "Success",
+    });
     return { success: true };
   });
 
@@ -420,12 +490,30 @@ export const submitContactForm = createServerFn({ method: "POST" })
       service?: string;
       budget?: string;
       message?: string;
+      _hp?: string;
+      _ts?: number;
     }) => input,
   )
   .handler(async ({ data }) => {
+    // Anti-spam protection: honeypot + timing detection
+    if (data._hp && data._hp.trim().length > 0) {
+      return { id: "rejected", name: data.name, email: data.email };
+    }
+    if (data._ts && Date.now() - data._ts < 1200) {
+      return { id: "rejected", name: data.name, email: data.email };
+    }
+
     const sb = getSupabaseAdmin();
-    const { data: contact, error } = await sb.from("contacts").insert(data).select().single();
+    const { _hp, _ts, ...record } = data;
+    const { data: contact, error } = await sb.from("contacts").insert(record).select().single();
     if (error) throw new Error(error.message);
+
+    const safeName = escapeHtml(data.name);
+    const safeEmail = escapeHtml(data.email);
+    const safeCompany = escapeHtml(data.company ?? "—");
+    const safeService = escapeHtml(data.service ?? "—");
+    const safeBudget = escapeHtml(data.budget ?? "—");
+    const safeMessage = escapeHtml(data.message ?? "No message provided.");
 
     // Send notification email to admin via ZeptoMail
     await sendEmail({
@@ -435,14 +523,14 @@ export const submitContactForm = createServerFn({ method: "POST" })
         <div style="font-family:'Plus Jakarta Sans',Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;padding:40px 20px">
           <h2 style="color:#0f172a;font-size:22px;margin-bottom:20px">📬 New Contact Form Submission</h2>
           <table style="width:100%;border-collapse:collapse;font-size:15px;color:#334155">
-            <tr><td style="padding:8px 0;font-weight:600;width:120px">Name</td><td style="padding:8px 0">${data.name}</td></tr>
-            <tr><td style="padding:8px 0;font-weight:600">Email</td><td style="padding:8px 0"><a href="mailto:${data.email}">${data.email}</a></td></tr>
-            <tr><td style="padding:8px 0;font-weight:600">Company</td><td style="padding:8px 0">${data.company ?? "—"}</td></tr>
-            <tr><td style="padding:8px 0;font-weight:600">Service</td><td style="padding:8px 0">${data.service ?? "—"}</td></tr>
-            <tr><td style="padding:8px 0;font-weight:600">Budget</td><td style="padding:8px 0">${data.budget ?? "—"}</td></tr>
+            <tr><td style="padding:8px 0;font-weight:600;width:120px">Name</td><td style="padding:8px 0">${safeName}</td></tr>
+            <tr><td style="padding:8px 0;font-weight:600">Email</td><td style="padding:8px 0"><a href="mailto:${safeEmail}">${safeEmail}</a></td></tr>
+            <tr><td style="padding:8px 0;font-weight:600">Company</td><td style="padding:8px 0">${safeCompany}</td></tr>
+            <tr><td style="padding:8px 0;font-weight:600">Service</td><td style="padding:8px 0">${safeService}</td></tr>
+            <tr><td style="padding:8px 0;font-weight:600">Budget</td><td style="padding:8px 0">${safeBudget}</td></tr>
           </table>
           <div style="margin-top:20px;padding:16px;background:#f8fafc;border-radius:8px;color:#475569;font-size:15px;line-height:1.6">
-            <strong>Message:</strong><br/>${data.message ?? "No message provided."}
+            <strong>Message:</strong><br/>${safeMessage}
           </div>
           <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0" />
           <p style="color:#94a3b8;font-size:12px">This inquiry was submitted via the Russell Technologies website contact form.</p>
@@ -472,11 +560,18 @@ export const updateContact = createServerFn({ method: "POST" })
   });
 
 export const deleteContact = createServerFn({ method: "POST" })
-  .validator((input: { id: string }) => input)
+  .validator((input: { id: string; name?: string }) => input)
   .handler(async ({ data }) => {
     const sb = getSupabaseAdmin();
     const { error } = await sb.from("contacts").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
+    await sb.from("audit_logs").insert({
+      action: "Deleted Contact Inquiry",
+      category: "Content",
+      target: data.name ?? data.id,
+      user_name: "Admin",
+      status: "Success",
+    });
     return { success: true };
   });
 
@@ -492,13 +587,16 @@ export const replyToContact = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const sb = getSupabaseAdmin();
+    const safeName = escapeHtml(data.name);
+    const safeReply = escapeHtml(data.replyMessage);
+
     await sendEmail({
       to: [{ email_address: { address: data.email, name: data.name } }],
       subject: data.subject || "Re: Your Inquiry to Russell Technologies",
       htmlbody: `
         <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#1e293b;line-height:1.6">
-          <p>Dear ${data.name},</p>
-          <div style="margin:16px 0;white-space:pre-wrap">${data.replyMessage}</div>
+          <p>Dear ${safeName},</p>
+          <div style="margin:16px 0;white-space:pre-wrap">${safeReply}</div>
           <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0"/>
           <p style="color:#64748b;font-size:13px">
             Best regards,<br/>
@@ -549,6 +647,13 @@ export const deleteComment = createServerFn({ method: "POST" })
     const sb = getSupabaseAdmin();
     const { error } = await sb.from("comments").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
+    await sb.from("audit_logs").insert({
+      action: "Deleted Comment",
+      category: "Content",
+      target: data.id,
+      user_name: "Admin",
+      status: "Success",
+    });
     return { success: true };
   });
 
@@ -560,13 +665,19 @@ export const createComment = createServerFn({ method: "POST" })
       author_name: string;
       author_email: string;
       content: string;
+      _hp?: string;
     }) => input,
   )
   .handler(async ({ data }) => {
+    // Bot protection: honeypot
+    if (data._hp && data._hp.trim().length > 0) {
+      return { id: "rejected", status: "Rejected" };
+    }
     const sb = getSupabaseAdmin();
+    const { _hp, ...record } = data;
     const { data: comment, error } = await sb
       .from("comments")
-      .insert({ ...data, status: "Pending" })
+      .insert({ ...record, status: "Pending" })
       .select()
       .single();
     if (error) throw new Error(error.message);
@@ -624,7 +735,7 @@ export const updateMediaRecord = createServerFn({ method: "POST" })
   });
 
 export const deleteMediaRecord = createServerFn({ method: "POST" })
-  .validator((input: { id: string; storage_path: string }) => input)
+  .validator((input: { id: string; storage_path: string; filename?: string }) => input)
   .handler(async ({ data }) => {
     const sb = getSupabaseAdmin();
     // Remove from Supabase Storage
@@ -632,6 +743,13 @@ export const deleteMediaRecord = createServerFn({ method: "POST" })
     // Remove DB record
     const { error } = await sb.from("media_files").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
+    await sb.from("audit_logs").insert({
+      action: "Deleted Media File",
+      category: "Content",
+      target: data.filename ?? data.storage_path,
+      user_name: "Admin",
+      status: "Success",
+    });
     return { success: true };
   });
 
@@ -655,6 +773,14 @@ export const updateAdminUser = createServerFn({ method: "POST" })
     const { id, ...updates } = data;
     const { data: user, error } = await sb.from("admin_profiles").update(updates).eq("id", id).select().single();
     if (error) throw new Error(error.message);
+    await sb.from("audit_logs").insert({
+      action: "Updated Admin User",
+      category: "Security",
+      target: user.name ?? id,
+      user_name: "Super Admin",
+      status: "Success",
+      details: updates.role ? `Role changed to ${updates.role}` : undefined,
+    });
     return user;
   });
 

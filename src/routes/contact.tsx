@@ -38,6 +38,7 @@ const field = "w-full rounded-md border border-input bg-background px-3 py-2.5 t
 function Contact() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [sending, setSending] = useState(false);
+  const [formMountedAt] = useState(() => Date.now());
   const submitContact = useSubmitContactForm();
   return (
     <>
@@ -92,6 +93,8 @@ function Contact() {
                   company: r.data.org || undefined,
                   service: r.data.interest || undefined,
                   message: r.data.phone ? `Phone: ${r.data.phone}\n\n${r.data.message}` : r.data.message,
+                  _hp: (fd.hp_website_title as string) || undefined,
+                  _ts: formMountedAt,
                 });
                 formEl.reset();
                 toast.success("Thanks! Your message has been received — we'll reply within 24 hours.");
@@ -103,6 +106,12 @@ function Contact() {
               }
             }}
           >
+            {/* Anti-spam honeypot (invisible to humans, trapped for automated bots) */}
+            <div className="hidden" aria-hidden="true" style={{ display: "none" }}>
+              <label htmlFor="hp_website_title">Website title</label>
+              <input id="hp_website_title" name="hp_website_title" type="text" tabIndex={-1} autoComplete="off" />
+            </div>
+
             {([["first", "First Name", "John", true], ["last", "Last Name", "Doe", true], ["email", "Email Address", "john@company.com", true]] as const).map(([n, l, ph, req]) => (
               <div key={n}><label htmlFor={n} className="text-xs font-semibold text-navy">{l}{req && <span className="text-destructive"> *</span>}</label><input id={n} name={n} type={n === "email" ? "email" : "text"} placeholder={ph} className={`mt-1.5 ${field}`} aria-invalid={!!errors[n]} />{errors[n] && <p className="mt-1 text-xs text-destructive">{errors[n]}</p>}</div>
             ))}

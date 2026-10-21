@@ -12,6 +12,8 @@ const col = "text-sm text-navy-foreground/65 hover:text-navy-foreground";
 export function Footer() {
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [honeypot, setHoneypot] = useState("");
+  const [mountedAt] = useState(() => Date.now());
   const subscribeMutation = usePublicSubscribe();
   // Home design shows a compact footer; every other page shows the brand column + back-to-top.
   const isHome = useLocation({ select: (l) => l.pathname === "/" });
@@ -65,7 +67,7 @@ export function Footer() {
               }
               setSubmitting(true);
               try {
-                await subscribeMutation.mutateAsync({ email });
+                await subscribeMutation.mutateAsync({ email, _hp: honeypot || undefined, _ts: mountedAt });
                 toast.success("Thanks for subscribing! Check your inbox for a welcome email.");
                 setEmail("");
               } catch (err: unknown) {
@@ -76,6 +78,10 @@ export function Footer() {
               }
             }}
           >
+            {/* Anti-spam honeypot */}
+            <div className="hidden" aria-hidden="true" style={{ display: "none" }}>
+              <input type="text" value={honeypot} onChange={(e) => setHoneypot(e.target.value)} tabIndex={-1} autoComplete="off" />
+            </div>
             <label htmlFor="footer-email" className="sr-only">Email address</label>
             <input id="footer-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email" className="min-w-0 basis-36 flex-1 rounded-lg border border-navy-foreground/10 bg-navy-soft px-4 py-2.5 text-sm text-navy-foreground placeholder:text-navy-foreground/45 focus:outline-none focus:ring-2 focus:ring-primary" />
             <Button type="submit" disabled={submitting} className="h-auto shrink-0 px-5 py-2.5 font-semibold disabled:opacity-50">
