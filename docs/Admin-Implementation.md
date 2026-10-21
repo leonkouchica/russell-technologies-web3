@@ -12,13 +12,14 @@
 >
 > | Variable | Value |
 > |---|---|
-> | `SUPABASE_ACCESS_TOKEN` | `sbp_fc640958c39efcd24028b0c5c40c92e1089936a6` |
-> | `VITE_SUPABASE_URL` | _(retrieve from Supabase project dashboard)_ |
-> | `VITE_SUPABASE_ANON_KEY` | _(retrieve from Supabase project → API settings)_ |
-> | `SUPABASE_SERVICE_ROLE_KEY` | _(retrieve from Supabase project → API settings)_ |
-> | `ZEPTOMAIL_API_KEY` | `wSsVR611/UHwXP10z2f7IucwkFkDVV33FUwriweovnH0T/yW9MdqxhbIU1PyG/dNQ2c8QTsa9+4pkUwD02Jc3dUlyFgJDiiF9mqRe1U4J3x17qnvhDzDVmpVmhWIKYgPxgpvnGVpEMkn+g==` |
+> | `SUPABASE_ACCESS_TOKEN` | _(store in secure env / CLI config only)_ |
+> | `VITE_SUPABASE_URL` | _(store in Vercel Environment Variables)_ |
+> | `VITE_SUPABASE_ANON_KEY` | _(store in Vercel Environment Variables)_ |
+> | `SUPABASE_SERVICE_ROLE_KEY` | _(store in Vercel Environment Variables)_ |
+> | `ZEPTOMAIL_API_KEY` | _(store in Vercel Environment Variables)_ |
 > | `ZEPTOMAIL_HOST` | `cpaas.zoho.com` |
 > | `ZEPTOMAIL_FROM_EMAIL` | `noreply@russelltechnologies.org` |
+
 
 ---
 

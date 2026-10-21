@@ -23,17 +23,15 @@ export interface ZeptoMailPayload {
  * Send a transactional email via ZeptoMail REST API.
  * Requires `ZEPTOMAIL_API_KEY` and `ZEPTOMAIL_FROM_EMAIL` env vars.
  */
-const FALLBACK_ZEPTOMAIL_KEY =
-  "Zoho-enczapikey wSsVR611/UHwXP10z2f7IucwkFkDVV33FUwriweovnH0T/yW9MdqxhbIU1PyG/dNQ2c8QTsa9+4pkUwD02Jc3dUlyFgJDiiF9mqRe1U4J3x17qnvhDzDVmpVmhWIKYgPxgpvnGVpEMkn+g==";
-
 export async function sendEmail(payload: ZeptoMailPayload): Promise<{ ok: boolean; status: number; body?: unknown }> {
-  const apiKey = (typeof process !== "undefined" && process.env?.ZEPTOMAIL_API_KEY) || FALLBACK_ZEPTOMAIL_KEY;
+  const apiKey = (typeof process !== "undefined" && process.env?.ZEPTOMAIL_API_KEY) || "";
   const fromEmail = (typeof process !== "undefined" && process.env?.ZEPTOMAIL_FROM_EMAIL) || "noreply@russelltechnologies.org";
 
   if (!apiKey) {
-    console.warn("[ZeptoMail] ZEPTOMAIL_API_KEY is not set — email will be skipped.");
+    console.warn("[ZeptoMail] ZEPTOMAIL_API_KEY is not set in environment variables — email will be skipped.");
     return { ok: false, status: 0 };
   }
+
 
 
   try {
