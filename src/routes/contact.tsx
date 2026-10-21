@@ -8,6 +8,7 @@ import { contact } from "@/lib/site-data";
 import { meta } from "@/components/site/blocks";
 import { BlueCta, Btn, FloatCard, IconBubble, LineEyebrow, SplitHero } from "@/components/site/kit";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { useSubmitContactForm } from "@/hooks/use-admin-data";
 
 export const Route = createFileRoute("/contact")({
   head: () => meta("Contact Us — Russell Technologies", "Talk to Russell Technologies about a project, product demo or partnership. Our team responds within 24 hours."),
@@ -37,6 +38,7 @@ const field = "w-full rounded-md border border-input bg-background px-3 py-2.5 t
 function Contact() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [sending, setSending] = useState(false);
+  const submitContact = useSubmitContactForm();
   return (
     <>
       <SplitHero
@@ -70,13 +72,35 @@ function Contact() {
             className="mt-6 grid gap-4 sm:grid-cols-2"
             onSubmit={async (e) => {
               e.preventDefault();
-              const fd = Object.fromEntries(new FormData(e.currentTarget));
+              const formEl = e.currentTarget;
+              const fd = Object.fromEntries(new FormData(formEl));
               const r = schema.safeParse(fd);
-              if (!r.success) { const m: Record<string, string> = {}; r.error.issues.forEach((i) => { m[String(i.path[0])] = i.message; }); setErrors(m); return; }
-              setErrors({}); setSending(true);
-              await new Promise((res) => setTimeout(res, 600));
-              setSending(false); e.currentTarget?.reset?.();
-              toast.success("Thanks! Your message has been received — we'll reply within 24 hours.");
+              if (!r.success) {
+                const m: Record<string, string> = {};
+                r.error.issues.forEach((i) => {
+                  m[String(i.path[0])] = i.message;
+                });
+                setErrors(m);
+                return;
+              }
+              setErrors({});
+              setSending(true);
+              try {
+                await submitContact.mutateAsync({
+                  name: `${r.data.first} ${r.data.last}`,
+                  email: r.data.email,
+                  company: r.data.org || undefined,
+                  service: r.data.interest || undefined,
+                  message: r.data.phone ? `Phone: ${r.data.phone}\n\n${r.data.message}` : r.data.message,
+                });
+                formEl.reset();
+                toast.success("Thanks! Your message has been received — we'll reply within 24 hours.");
+              } catch (err: unknown) {
+                const msg = err instanceof Error ? err.message : "Failed to send message. Please try again.";
+                toast.error(msg);
+              } finally {
+                setSending(false);
+              }
             }}
           >
             {([["first", "First Name", "John", true], ["last", "Last Name", "Doe", true], ["email", "Email Address", "john@company.com", true]] as const).map(([n, l, ph, req]) => (

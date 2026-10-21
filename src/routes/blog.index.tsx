@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { ArrowRight, BarChart3, BookOpen, Building2, GraduationCap, Mail, Music, Scale, Settings, Sprout, Users } from "lucide-react";
 import { toast } from "sonner";
 import heroImg from "@/assets/blog-hero.webp";
@@ -7,6 +7,7 @@ import av1 from "@/assets/avatar-1.webp";
 import { posts, type Post } from "@/lib/site-data";
 import { meta } from "@/components/site/blocks";
 import { BlueCta, Btn, IconBubble, LineEyebrow, SplitHero } from "@/components/site/kit";
+import { useBlogPosts, usePublicSubscribe } from "@/hooks/use-admin-data";
 
 export const Route = createFileRoute("/blog/")({
   head: () => meta("Blog — Russell Technologies", "Insights on education, agriculture, law, music, technology and digital transformation across Africa."),
@@ -23,8 +24,6 @@ const topics = [
   [Scale, "Legal & Compliance", "Law, policy & insights", "orange"], [Music, "Music & Creative", "Artists, industry & trends", "purple"],
   [Settings, "Technology", "Digital solutions & tools", "blue"], [Building2, "Business Growth", "Strategy, people & impact", "orange"],
 ] as const;
-
-const popularPosts = [posts[0], posts[1], posts[6]].filter((p): p is Post => Boolean(p));
 
 function Card({ p }: { p: Post }) {
   return (
@@ -44,18 +43,70 @@ function Card({ p }: { p: Post }) {
 
 function Subscribe() {
   const [email, setEmail] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const subscribeMutation = usePublicSubscribe();
   return (
-    <form className="mt-4 flex gap-2" onSubmit={(e) => { e.preventDefault(); if (!/^\S+@\S+\.\S+$/.test(email)) { toast.error("Please enter a valid email address."); return; } toast.success("You're subscribed!"); setEmail(""); }}>
+    <form
+      className="mt-4 flex gap-2"
+      onSubmit={async (e) => {
+        e.preventDefault();
+        if (!/^\S+@\S+\.\S+$/.test(email)) {
+          toast.error("Please enter a valid email address.");
+          return;
+        }
+        setSubmitting(true);
+        try {
+          await subscribeMutation.mutateAsync({ email });
+          toast.success("You're subscribed! Check your inbox for a confirmation.");
+          setEmail("");
+        } catch (err: unknown) {
+          const msg = err instanceof Error ? err.message : "Failed to subscribe. Please try again.";
+          toast.error(msg);
+        } finally {
+          setSubmitting(false);
+        }
+      }}
+    >
       <label htmlFor="blog-email" className="sr-only">Email</label>
-      <input id="blog-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email" className="min-w-0 flex-1 rounded-md border border-input bg-background px-3 py-2.5 text-sm" />
-      <button className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground">Subscribe <ArrowRight className="size-4" /></button>
+      <input
+        id="blog-email"
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="Enter your email"
+        className="min-w-0 flex-1 rounded-md border border-input bg-background px-3 py-2.5 text-sm"
+      />
+      <button
+        disabled={submitting}
+        className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+      >
+        {submitting ? "Subscribing…" : "Subscribe"} <ArrowRight className="size-4" />
+      </button>
     </form>
   );
 }
 
 function Blog() {
-  const featured = posts[0];
-  const rest = posts.slice(1);
+  const { data: livePosts } = useBlogPosts({ status: "Published" });
+  const allPosts = useMemo(() => {
+    if (!livePosts?.length) return posts;
+    const mapped: Post[] = livePosts.map((p) => ({
+      slug: p.slug,
+      title: p.title,
+      excerpt: p.excerpt || "",
+      category: p.category,
+      date: new Date(p.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+      read: "5 min read",
+      image: p.image_url || posts[0].image,
+      author: p.author_name || "Russell Team",
+    }));
+    const seen = new Set(mapped.map((p) => p.slug));
+    const leftovers = posts.filter((p) => !seen.has(p.slug));
+    return [...mapped, ...leftovers];
+  }, [livePosts]);
+
+  const featured = allPosts[0];
+  const rest = allPosts.slice(1);
   const [topic, setTopic] = useState<string | null>(null);
   const latest = topic ? rest.filter((p) => topic.startsWith(p.category) || p.category.startsWith(topic.split(" ")[0] ?? "")) : rest;
   if (!featured) return null;

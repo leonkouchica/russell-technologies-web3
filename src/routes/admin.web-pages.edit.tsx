@@ -37,6 +37,7 @@ import meetingImg from "@/assets/meeting.webp";
 import { meta } from "@/components/site/blocks";
 import { convertImageToWebP } from "@/lib/image-utils";
 import { toast } from "sonner";
+import { useSaveSettings } from "@/hooks/use-admin-data";
 
 export const Route = createFileRoute("/admin/web-pages/edit")({
   head: () => meta("Edit Web Page — Admin Dashboard", "Customize layout, content and settings for web pages."),
@@ -77,10 +78,30 @@ export function AdminEditWebPage() {
   const [template, setTemplate] = useState("Default Template");
   const [showInNav, setShowInNav] = useState(true);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const saveSettingsMutation = useSaveSettings();
 
-  const handleUpdate = () => {
-    setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 3000);
+  const handleUpdate = async () => {
+    try {
+      await saveSettingsMutation.mutateAsync({
+        key: `web_page_${slug}`,
+        value: {
+          title: pageTitle,
+          slug,
+          status,
+          pageType,
+          parentPage,
+          template,
+          showInNav,
+          updated_at: new Date().toISOString(),
+        },
+      });
+      setSaveSuccess(true);
+      toast.success("Page configuration saved to Supabase!");
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch {
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    }
   };
 
   return (

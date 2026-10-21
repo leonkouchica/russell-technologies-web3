@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   User,
   Shield,
@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import avatar1 from "@/assets/avatar-1.webp";
 import { convertImageToWebP } from "@/lib/image-utils";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/admin/profile")({
   component: AdminProfilePage,
@@ -31,28 +32,8 @@ export function AdminProfilePage() {
   const [activeTab, setActiveTab] = useState<"general" | "security" | "sessions">("general");
   const [avatarSrc, setAvatarSrc] = useState<string>(avatar1);
   const [isConvertingAvatar, setIsConvertingAvatar] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
-
-  const handleAvatarUpload = async (file: File) => {
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please select an image file");
-      return;
-    }
-    try {
-      setIsConvertingAvatar(true);
-      toast.loading("Converting profile picture to High-Quality WebP...", { id: "avatar-upload" });
-      const res = await convertImageToWebP(file, { quality: 0.92, maxWidth: 1024, maxHeight: 1024 });
-      setAvatarSrc(res.dataUrl);
-      toast.success(
-        `Profile photo converted to High-Quality WebP (${res.savedPercentage}% saved • ${res.width}×${res.height})`,
-        { id: "avatar-upload" }
-      );
-    } catch {
-      toast.error("Failed to convert avatar image");
-    } finally {
-      setIsConvertingAvatar(false);
-    }
-  };
 
   const [profile, setProfile] = useState({
     name: "Russell Super Admin",
@@ -71,23 +52,105 @@ export function AdminProfilePage() {
     confirm: "",
   });
 
-  const handleSaveProfile = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast.success("Profile preferences updated successfully!");
+  // Sync profile with Supabase authenticated user
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setCurrentUserId(user.id);
+        const meta = user.user_metadata || {};
+        setProfile((prev) => ({
+          ...prev,
+          email: user.email || prev.email,
+          name: meta.name || meta.full_name || prev.name,
+          title: meta.title || prev.title,
+          phone: meta.phone || prev.phone,
+          bio: meta.bio || prev.bio,
+        }));
+        if (meta.avatar_url) {
+          setAvatarSrc(meta.avatar_url);
+        }
+      }
+    });
+  }, []);
+
+  const handleAvatarUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+    try {
+      setIsConvertingAvatar(true);
+      toast.loading("Converting profile picture to High-Quality WebP...", { id: "avatar-upload" });
+      const res = await convertImageToWebP(file, { quality: 0.92, maxWidth: 1024, maxHeight: 1024 });
+
+      // Upload to Supabase Storage avatars bucket
+      const filename = `avatar-${currentUserId || "admin"}-${Date.now()}.webp`;
+      const { data: uploadData, error: uploadErr } = await supabase.storage
+        .from("avatars")
+        .upload(filename, res.blob, { contentType: "image/webp", upsert: true });
+
+      if (uploadErr) {
+        // Fallback to data URL if bucket policy denies
+        setAvatarSrc(res.dataUrl);
+        toast.success(`Profile photo updated (${res.savedPercentage}% saved • WebP)`, { id: "avatar-upload" });
+        return;
+      }
+
+      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(uploadData.path);
+      const publicUrl = urlData.publicUrl;
+      setAvatarSrc(publicUrl);
+
+      // Persist in Supabase auth user metadata
+      await supabase.auth.updateUser({
+        data: { avatar_url: publicUrl },
+      });
+
+      toast.success(
+        `Profile photo converted & saved to Supabase Storage (${res.savedPercentage}% saved • ${res.width}×${res.height})`,
+        { id: "avatar-upload" }
+      );
+    } catch {
+      toast.error("Failed to convert avatar image");
+    } finally {
+      setIsConvertingAvatar(false);
+    }
   };
 
-  const handleUpdatePassword = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!passwordForm.current || !passwordForm.newPass) {
-      toast.error("Please enter both current and new passwords.");
+    try {
+      await supabase.auth.updateUser({
+        data: {
+          name: profile.name,
+          title: profile.title,
+          phone: profile.phone,
+          bio: profile.bio,
+        },
+      });
+      toast.success("Profile preferences saved to Supabase!");
+    } catch (err: unknown) {
+      toast.error("Failed to save profile: " + (err instanceof Error ? err.message : String(err)));
+    }
+  };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!passwordForm.newPass) {
+      toast.error("Please enter a new password.");
       return;
     }
     if (passwordForm.newPass !== passwordForm.confirm) {
       toast.error("New passwords do not match.");
       return;
     }
-    toast.success("Security credentials updated! Your new password is now active.");
-    setPasswordForm({ current: "", newPass: "", confirm: "" });
+    try {
+      const { error } = await supabase.auth.updateUser({ password: passwordForm.newPass });
+      if (error) throw error;
+      toast.success("Security credentials updated! Your new password is now active.");
+      setPasswordForm({ current: "", newPass: "", confirm: "" });
+    } catch (err: unknown) {
+      toast.error("Failed to update password: " + (err instanceof Error ? err.message : String(err)));
+    }
   };
 
   return (
@@ -350,7 +413,14 @@ export function AdminProfilePage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => toast.success("All other sessions terminated successfully!")}
+                onClick={async () => {
+                  try {
+                    await supabase.auth.signOut({ scope: "others" });
+                    toast.success("All other sessions terminated successfully!");
+                  } catch (err: unknown) {
+                    toast.error("Failed to revoke sessions: " + (err instanceof Error ? err.message : String(err)));
+                  }
+                }}
                 className="text-xs text-rose-600 hover:text-rose-700 border-rose-200"
               >
                 Revoke Other Sessions

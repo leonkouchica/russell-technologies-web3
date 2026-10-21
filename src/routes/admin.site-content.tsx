@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Layers,
   Package,
@@ -31,6 +31,7 @@ import {
   clients as siteClients,
   metrics as siteMetrics,
 } from "@/lib/site-data";
+import { useSettings, useSaveSettings } from "@/hooks/use-admin-data";
 
 export const Route = createFileRoute("/admin/site-content")({
   head: () =>
@@ -229,6 +230,81 @@ function AdminSiteContentPage() {
       label: m.label,
     })),
   );
+
+  /* ── Supabase Hydration & Persistence ────────────────── */
+  const { data: dbSettings } = useSettings();
+  const saveSettingsMutation = useSaveSettings();
+
+  useEffect(() => {
+    if (!dbSettings || !Array.isArray(dbSettings)) return;
+    const map = new Map(dbSettings.map((s) => [s.key, s.value]));
+
+    const savedSvc = map.get("site_content_services") as Record<string, unknown> | undefined;
+    if (savedSvc?.services && Array.isArray(savedSvc.services)) {
+      setServicesList(savedSvc.services as typeof servicesList);
+    }
+    const savedProd = map.get("site_content_products") as Record<string, unknown> | undefined;
+    if (savedProd?.products && Array.isArray(savedProd.products)) {
+      setProductsList(savedProd.products as typeof productsList);
+    }
+    const savedTest = map.get("site_content_testimonials") as Record<string, unknown> | undefined;
+    if (savedTest?.testimonials && Array.isArray(savedTest.testimonials)) {
+      setTestimonialsList(savedTest.testimonials as typeof testimonialsList);
+    }
+    const savedClients = map.get("site_content_clients") as Record<string, unknown> | undefined;
+    if (savedClients?.clients && Array.isArray(savedClients.clients)) {
+      setClientsList(savedClients.clients as typeof clientsList);
+    }
+    const savedMetrics = map.get("site_content_metrics") as Record<string, unknown> | undefined;
+    if (savedMetrics?.metrics && Array.isArray(savedMetrics.metrics)) {
+      setMetricsList(savedMetrics.metrics as typeof metricsList);
+    }
+  }, [dbSettings]);
+
+  const handleSaveServices = async (title?: string) => {
+    try {
+      await saveSettingsMutation.mutateAsync({ key: "site_content_services", value: { services: servicesList } });
+      toast.success(title ? `${title} saved to database!` : "Services saved to database!");
+    } catch {
+      toast.error("Failed to save services");
+    }
+  };
+
+  const handleSaveProducts = async (name?: string) => {
+    try {
+      await saveSettingsMutation.mutateAsync({ key: "site_content_products", value: { products: productsList } });
+      toast.success(name ? `${name} saved to database!` : "Products saved to database!");
+    } catch {
+      toast.error("Failed to save products");
+    }
+  };
+
+  const handleSaveTestimonials = async () => {
+    try {
+      await saveSettingsMutation.mutateAsync({ key: "site_content_testimonials", value: { testimonials: testimonialsList } });
+      toast.success("Testimonials saved to database!");
+    } catch {
+      toast.error("Failed to save testimonials");
+    }
+  };
+
+  const handleSaveClients = async () => {
+    try {
+      await saveSettingsMutation.mutateAsync({ key: "site_content_clients", value: { clients: clientsList } });
+      toast.success("Clients list saved to database!");
+    } catch {
+      toast.error("Failed to save clients");
+    }
+  };
+
+  const handleSaveMetrics = async () => {
+    try {
+      await saveSettingsMutation.mutateAsync({ key: "site_content_metrics", value: { metrics: metricsList } });
+      toast.success("Metrics saved to database!");
+    } catch {
+      toast.error("Failed to save metrics");
+    }
+  };
 
   /* ── Render ──────────────────────────────────────────── */
   return (
@@ -511,9 +587,7 @@ function AdminSiteContentPage() {
 
                     <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                       <button
-                        onClick={() =>
-                          toast.success(`${svc.title} updated!`)
-                        }
+                        onClick={() => handleSaveServices(svc.title)}
                         className="px-4 py-2 bg-[#0062ff] hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5"
                       >
                         <Save className="size-3.5" /> Save Service
@@ -706,9 +780,7 @@ function AdminSiteContentPage() {
 
                     <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                       <button
-                        onClick={() =>
-                          toast.success(`${prod.name} updated!`)
-                        }
+                        onClick={() => handleSaveProducts(prod.name)}
                         className="px-4 py-2 bg-[#0062ff] hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5"
                       >
                         <Save className="size-3.5" /> Save Product
@@ -802,22 +874,31 @@ function AdminSiteContentPage() {
                   Cancel
                 </button>
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     if (
                       newTestimonial.quote &&
                       newTestimonial.name &&
                       newTestimonial.role
                     ) {
-                      setTestimonialsList([
+                      const updated = [
                         ...testimonialsList,
                         {
                           id: `test-${Date.now()}`,
                           ...newTestimonial,
                         },
-                      ]);
+                      ];
+                      setTestimonialsList(updated);
                       setNewTestimonial({ quote: "", name: "", role: "" });
                       setShowAddTestimonial(false);
-                      toast.success("Testimonial added!");
+                      try {
+                        await saveSettingsMutation.mutateAsync({
+                          key: "site_content_testimonials",
+                          value: { testimonials: updated },
+                        });
+                        toast.success("Testimonial added & saved!");
+                      } catch {
+                        toast.error("Failed to persist testimonial");
+                      }
                     } else {
                       toast.error("Please fill in all fields.");
                     }
@@ -857,11 +938,18 @@ function AdminSiteContentPage() {
                   </div>
                 </div>
                 <button
-                  onClick={() => {
-                    setTestimonialsList(
-                      testimonialsList.filter((item) => item.id !== t.id),
-                    );
-                    toast.success("Testimonial removed");
+                  onClick={async () => {
+                    const updated = testimonialsList.filter((item) => item.id !== t.id);
+                    setTestimonialsList(updated);
+                    try {
+                      await saveSettingsMutation.mutateAsync({
+                        key: "site_content_testimonials",
+                        value: { testimonials: updated },
+                      });
+                      toast.success("Testimonial removed & saved!");
+                    } catch {
+                      toast.error("Failed to remove testimonial");
+                    }
                   }}
                   className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
                 >
@@ -899,26 +987,44 @@ function AdminSiteContentPage() {
               onChange={(e) => setNewClient(e.target.value)}
               placeholder="Enter client name..."
               className={`${inputCls} flex-1`}
-              onKeyDown={(e) => {
+              onKeyDown={async (e) => {
                 if (e.key === "Enter" && newClient.trim()) {
-                  setClientsList([
+                  const updated = [
                     ...clientsList,
                     { id: `client-${Date.now()}`, name: newClient.trim() },
-                  ]);
+                  ];
+                  setClientsList(updated);
                   setNewClient("");
-                  toast.success("Client added!");
+                  try {
+                    await saveSettingsMutation.mutateAsync({
+                      key: "site_content_clients",
+                      value: { clients: updated },
+                    });
+                    toast.success("Client added & saved!");
+                  } catch {
+                    toast.error("Failed to save client");
+                  }
                 }
               }}
             />
             <button
-              onClick={() => {
+              onClick={async () => {
                 if (newClient.trim()) {
-                  setClientsList([
+                  const updated = [
                     ...clientsList,
                     { id: `client-${Date.now()}`, name: newClient.trim() },
-                  ]);
+                  ];
+                  setClientsList(updated);
                   setNewClient("");
-                  toast.success("Client added!");
+                  try {
+                    await saveSettingsMutation.mutateAsync({
+                      key: "site_content_clients",
+                      value: { clients: updated },
+                    });
+                    toast.success("Client added & saved!");
+                  } catch {
+                    toast.error("Failed to save client");
+                  }
                 }
               }}
               className="px-4 py-2.5 bg-[#0062ff] hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5 shrink-0"
@@ -943,11 +1049,18 @@ function AdminSiteContentPage() {
                   </span>
                 </div>
                 <button
-                  onClick={() => {
-                    setClientsList(
-                      clientsList.filter((item) => item.id !== c.id),
-                    );
-                    toast.success(`${c.name} removed`);
+                  onClick={async () => {
+                    const updated = clientsList.filter((item) => item.id !== c.id);
+                    setClientsList(updated);
+                    try {
+                      await saveSettingsMutation.mutateAsync({
+                        key: "site_content_clients",
+                        value: { clients: updated },
+                      });
+                      toast.success(`${c.name} removed & saved!`);
+                    } catch {
+                      toast.error("Failed to remove client");
+                    }
                   }}
                   className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition opacity-0 group-hover:opacity-100"
                 >
@@ -955,6 +1068,15 @@ function AdminSiteContentPage() {
                 </button>
               </div>
             ))}
+          </div>
+
+          <div className="flex items-center justify-end pt-3 border-t border-slate-100">
+            <button
+              onClick={handleSaveClients}
+              className="px-5 py-2.5 bg-[#0062ff] hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5"
+            >
+              <Save className="size-3.5" /> Save Clients
+            </button>
           </div>
         </div>
       )}
@@ -1038,7 +1160,7 @@ function AdminSiteContentPage() {
 
           <div className="flex items-center justify-end pt-3 border-t border-slate-100">
             <button
-              onClick={() => toast.success("Metrics saved!")}
+              onClick={handleSaveMetrics}
               className="px-5 py-2.5 bg-[#0062ff] hover:bg-blue-600 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5"
             >
               <Save className="size-3.5" /> Save Metrics

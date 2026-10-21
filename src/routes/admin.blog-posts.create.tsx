@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useRef } from "react";
 import {
   ChevronLeft,
@@ -24,12 +24,14 @@ import {
   Search,
   CheckCircle2,
   Sparkles,
+  Loader2,
 } from "lucide-react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import studentImg from "@/assets/student.webp";
 import { adminCurrentUser } from "@/lib/admin-data";
 import { meta } from "@/components/site/blocks";
 import { convertImageToWebP } from "@/lib/image-utils";
+import { useCreateBlogPost } from "@/hooks/use-admin-data";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/blog-posts/create")({
@@ -38,10 +40,14 @@ export const Route = createFileRoute("/admin/blog-posts/create")({
 });
 
 export function AdminCreateBlogPostPage() {
+  const navigate = useNavigate();
+  const createMutation = useCreateBlogPost();
+  const [isSaving, setIsSaving] = useState(false);
+
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [content, setContent] = useState("");
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState("Technology");
   const [tags, setTags] = useState<string[]>(["education", "technology"]);
   const [newTag, setNewTag] = useState("");
   const [author, setAuthor] = useState("Admin (You)");
@@ -56,6 +62,35 @@ export function AdminCreateBlogPostPage() {
   const [isConverting, setIsConverting] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleSavePost = async (targetStatus: "Draft" | "Published") => {
+    if (!title.trim()) {
+      toast.error("Please enter a post title");
+      return;
+    }
+    const finalSlug = slug.trim() || title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const finalCategory = category || "Technology";
+
+    try {
+      setIsSaving(true);
+      await createMutation.mutateAsync({
+        title,
+        slug: finalSlug,
+        category: finalCategory,
+        status: targetStatus,
+        excerpt: excerpt || title,
+        content: content || excerpt || title,
+        image_url: featuredImage || undefined,
+        author_name: "Admin User",
+      });
+      toast.success(targetStatus === "Published" ? "Post published successfully!" : "Draft saved successfully!");
+      navigate({ to: "/admin/blog-posts" });
+    } catch (err: unknown) {
+      toast.error("Failed to save post: " + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleImageFile = async (file: File) => {
     if (!file.type.startsWith("image/")) {
@@ -106,25 +141,29 @@ export function AdminCreateBlogPostPage() {
           <span className="text-slate-800">Create New Post</span>
         </div>
 
-        <div className="flex items-center gap-2.5">
           <button
-            onClick={() => alert("Draft saved successfully!")}
-            className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-2xs transition"
+            type="button"
+            disabled={isSaving}
+            onClick={() => handleSavePost("Draft")}
+            className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-2xs transition disabled:opacity-50"
           >
-            Save Draft
+            {isSaving ? "Saving..." : "Save Draft"}
           </button>
           <button
+            type="button"
             className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-2xs transition flex items-center gap-1.5"
           >
             <Eye className="size-3.5 text-slate-500" /> Preview
           </button>
           <button
-            onClick={() => setIsPublished(true)}
-            className="px-5 py-2 rounded-xl bg-[#0062ff] hover:bg-blue-600 text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5"
+            type="button"
+            disabled={isSaving}
+            onClick={() => handleSavePost("Published")}
+            className="px-5 py-2 rounded-xl bg-[#0062ff] hover:bg-blue-600 text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5 disabled:opacity-50"
           >
-            <Send className="size-3.5" /> Publish Post
+            {isSaving ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}
+            <span>Publish Post</span>
           </button>
-        </div>
       </div>
 
       {/* PAGE HEADING */}

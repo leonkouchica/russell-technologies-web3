@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { AdminStatusBadge } from "@/components/admin/AdminComponents";
+import { useComments, useUpdateComment, useDeleteComment } from "@/hooks/use-admin-data";
+import { toast } from "sonner";
 import { meta } from "@/components/site/blocks";
 
 export const Route = createFileRoute("/admin/comments")({
@@ -70,16 +72,43 @@ const mockComments: CommentItem[] = [
 ];
 
 function AdminCommentsPage() {
-  const [comments, setComments] = useState<CommentItem[]>(mockComments);
+  const { data: liveComments } = useComments();
+  const updateCommentMutation = useUpdateComment();
+  const deleteCommentMutation = useDeleteComment();
+
+  const comments: CommentItem[] = (liveComments && liveComments.length > 0)
+    ? liveComments.map((c) => ({
+        id: c.id,
+        author: c.author,
+        email: c.email || "",
+        postTitle: c.post_title || "General Article",
+        comment: c.content,
+        date: c.created_at ? new Date(c.created_at).toLocaleString() : "Recently",
+        status: (c.status === "Approved" ? "Published" : (c.status as CommentItem["status"])) || "Pending",
+      }))
+    : mockComments;
+
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [search, setSearch] = useState("");
 
-  const handleApprove = (id: string) => {
-    setComments(comments.map((c) => (c.id === id ? { ...c, status: "Published" } : c)));
+  const handleApprove = async (id: string) => {
+    try {
+      await updateCommentMutation.mutateAsync({ id, status: "Approved" });
+      toast.success("Comment approved!");
+    } catch {
+      toast.error("Failed to approve comment");
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setComments(comments.filter((c) => c.id !== id));
+  const handleDelete = async (id: string) => {
+    if (confirm("Are you sure you want to remove this comment?")) {
+      try {
+        await deleteCommentMutation.mutateAsync({ id });
+        toast.success("Comment removed!");
+      } catch {
+        toast.error("Failed to delete comment");
+      }
+    }
   };
 
   const filtered = comments.filter((c) => {

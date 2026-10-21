@@ -53,6 +53,15 @@ import {
   AdminStatusBadge,
 } from "@/components/admin/AdminComponents";
 import { adminSubscribers, AdminSubscriber } from "@/lib/admin-data";
+import {
+  useSubscribers,
+  useCreateSubscriber,
+  useUpdateSubscriber,
+  useDeleteSubscriber,
+  useCampaigns,
+  useCreateCampaign,
+  useSendCampaignBlast,
+} from "@/hooks/use-admin-data";
 import buildingImg from "@/assets/building.webp";
 import { meta } from "@/components/site/blocks";
 import { exportToCsv, exportToPdf } from "@/lib/export-utils";
@@ -310,8 +319,46 @@ const engagementRateData = [
 export function AdminNewsletterPage() {
   const [activeTab, setActiveTab] = useState<NewsletterTab>("campaigns");
 
+  const { data: liveSubs } = useSubscribers();
+  const createSubMutation = useCreateSubscriber();
+  const updateSubMutation = useUpdateSubscriber();
+  const deleteSubMutation = useDeleteSubscriber();
+
+  const { data: liveCampaigns } = useCampaigns();
+  const createCampMutation = useCreateCampaign();
+  const sendCampMutation = useSendCampaignBlast();
+
   /* ── Campaign States ───────────────────────────────────────────────── */
-  const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
+  const campaigns: Campaign[] = (liveCampaigns && liveCampaigns.length > 0)
+    ? liveCampaigns.map((c) => ({
+        id: c.id,
+        title: c.title,
+        subject: c.subject,
+        previewText: c.preheader || c.subject,
+        senderName: "Russell Technologies",
+        senderEmail: "newsletter@russelltechnologies.org",
+        audience: c.audience || "All Subscribers",
+        sentDate: c.sent_at ? new Date(c.sent_at).toLocaleDateString() : c.status,
+        status: (c.status as Campaign["status"]) || "Draft",
+        recipientsCount: c.sent_count ?? 0,
+        openRate: Number(c.open_rate) || 0,
+        clickRate: Number(c.click_rate) || 0,
+        content: c.html_content || c.plain_text || "",
+      }))
+    : initialCampaigns;
+
+  const subscribers: AdminSubscriber[] = (liveSubs && liveSubs.length > 0)
+    ? liveSubs.map((s) => ({
+        id: s.id,
+        name: s.name || s.email.split("@")[0],
+        email: s.email,
+        status: (s.status as AdminSubscriber["status"]) || "Subscribed",
+        source: s.source || "Website",
+        dateSubscribed: s.subscribed_at ? new Date(s.subscribed_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Recent",
+        initials: (s.name || s.email).slice(0, 2).toUpperCase(),
+      }))
+    : adminSubscribers;
+
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [previewTemplateModal, setPreviewTemplateModal] = useState<EmailTemplate | null>(null);
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
@@ -325,7 +372,6 @@ export function AdminNewsletterPage() {
   const [campBody, setCampBody] = useState("");
 
   /* ── Subscribers State ─────────────────────────────────────────────── */
-  const [subscribers, setSubscribers] = useState<AdminSubscriber[]>(adminSubscribers);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedSource, setSelectedSource] = useState("all");
@@ -408,82 +454,60 @@ export function AdminNewsletterPage() {
   };
 
   /* ── Add Subscriber Handler ────────────────────────────────────────── */
-  const handleAddSubscriber = (e: React.FormEvent) => {
+  const handleAddSubscriber = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newSubName.trim() || !newSubEmail.trim()) {
       toast.error("Please fill in both name and email");
       return;
     }
-    const initials = newSubName
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .substring(0, 2)
-      .toUpperCase();
 
-    const newSub: AdminSubscriber = {
-      id: `sub-${Date.now()}`,
-      name: newSubName.trim(),
-      email: newSubEmail.trim(),
-      status: "Subscribed",
-      source: newSubSource,
-      dateSubscribed: new Date().toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }),
-      initials,
-    };
-
-    setSubscribers([newSub, ...subscribers]);
-    setNewSubName("");
-    setNewSubEmail("");
-    setShowAddSubModal(false);
-    toast.success(`Subscriber ${newSub.name} added successfully!`);
+    try {
+      await createSubMutation.mutateAsync({
+        name: newSubName.trim(),
+        email: newSubEmail.trim(),
+        source: newSubSource,
+      });
+      setNewSubName("");
+      setNewSubEmail("");
+      setShowAddSubModal(false);
+      toast.success(`Subscriber ${newSubName} added successfully!`);
+    } catch (err: unknown) {
+      toast.error("Failed to add subscriber: " + (err instanceof Error ? err.message : String(err)));
+    }
   };
 
   /* ── Create Campaign Handler ───────────────────────────────────────── */
-  const handleSaveCampaign = (sendNow: boolean = false) => {
+  const handleSaveCampaign = async (sendNow: boolean = false) => {
     if (!campTitle.trim() || !campSubject.trim()) {
       toast.error("Please provide both Campaign Title and Subject line");
       return;
     }
 
-    const newCampaign: Campaign = {
-      id: `camp-${Date.now()}`,
-      title: campTitle,
-      subject: campSubject,
-      previewText: campPreviewText || campSubject,
-      senderName: "Russell Technologies",
-      senderEmail: "newsletter@russelltechnologies.org",
-      audience: campAudience,
-      sentDate: sendNow ? "Just now" : "Draft",
-      status: sendNow ? "Sent" : "Draft",
-      recipientsCount:
-        campAudience === "All Subscribers"
-          ? 1250
-          : campAudience === "Enterprise Leads"
-            ? 420
-            : 890,
-      openRate: sendNow ? 0.0 : undefined,
-      clickRate: sendNow ? 0.0 : undefined,
-      templateId: campTemplateId,
-      content: campBody || "Campaign content...",
-    };
+    try {
+      const camp = await createCampMutation.mutateAsync({
+        title: campTitle,
+        subject: campSubject,
+        preheader: campPreviewText || campSubject,
+        audience: campAudience,
+        html_content: campBody || `<h2>${campTitle}</h2><p>${campPreviewText || campSubject}</p>`,
+        status: sendNow ? "Sent" : "Draft",
+      });
 
-    setCampaigns([newCampaign, ...campaigns]);
-    setShowCreateModal(false);
-    setCampTitle("");
-    setCampSubject("");
-    setCampPreviewText("");
-    setCampBody("");
+      if (sendNow && camp?.id) {
+        toast.loading("Dispatching campaign blast via ZeptoMail...", { id: "camp-send" });
+        await sendCampMutation.mutateAsync({ id: camp.id });
+        toast.success("Campaign blast delivered via ZeptoMail!", { id: "camp-send" });
+      } else {
+        toast.success("Campaign draft saved!");
+      }
 
-    if (sendNow) {
-      toast.success(
-        `Campaign dispatched successfully to ${newCampaign.recipientsCount} recipients!`,
-      );
-    } else {
-      toast.success("Campaign draft saved successfully!");
+      setShowCreateModal(false);
+      setCampTitle("");
+      setCampSubject("");
+      setCampPreviewText("");
+      setCampBody("");
+    } catch (err: unknown) {
+      toast.error("Failed to save campaign: " + (err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -917,21 +941,31 @@ export function AdminNewsletterPage() {
                         <td className="py-3 px-4 text-right">
                           <div className="flex items-center justify-end gap-1.5">
                             <button
-                              onClick={() => {
+                              type="button"
+                              onClick={async () => {
                                 const newStatus = sub.status === "Subscribed" ? "Unsubscribed" : "Subscribed";
-                                setSubscribers(
-                                  subscribers.map((s) => (s.id === sub.id ? { ...s, status: newStatus } : s)),
-                                );
-                                toast.success(`${sub.name} is now ${newStatus}`);
+                                try {
+                                  await updateSubMutation.mutateAsync({ id: sub.id, status: newStatus });
+                                  toast.success(`${sub.name} is now ${newStatus}`);
+                                } catch {
+                                  toast.error("Failed to update status");
+                                }
                               }}
                               className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold rounded-md transition"
                             >
                               {sub.status === "Subscribed" ? "Unsubscribe" : "Re-activate"}
                             </button>
                             <button
-                              onClick={() => {
-                                setSubscribers(subscribers.filter((s) => s.id !== sub.id));
-                                toast.success(`Removed ${sub.name}`);
+                              type="button"
+                              onClick={async () => {
+                                if (confirm(`Remove subscriber ${sub.name}?`)) {
+                                  try {
+                                    await deleteSubMutation.mutateAsync({ id: sub.id });
+                                    toast.success(`Removed ${sub.name}`);
+                                  } catch {
+                                    toast.error("Failed to remove subscriber");
+                                  }
+                                }
                               }}
                               className="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
                               title="Delete subscriber"

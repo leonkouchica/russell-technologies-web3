@@ -26,6 +26,12 @@ import {
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { AdminStatCard } from "@/components/admin/AdminComponents";
 import { adminMediaFiles, AdminMediaFile } from "@/lib/admin-data";
+import {
+  useMediaFiles,
+  useCreateMediaRecord,
+  useDeleteMediaRecord,
+} from "@/hooks/use-admin-data";
+import { supabase } from "@/lib/supabase";
 import { meta } from "@/components/site/blocks";
 import { convertImageToWebP, formatBytes } from "@/lib/image-utils";
 import { toast } from "sonner";
@@ -36,8 +42,31 @@ export const Route = createFileRoute("/admin/media")({
 });
 
 function AdminMediaPage() {
-  const [mediaList, setMediaList] = useState<AdminMediaFile[]>(adminMediaFiles);
-  const [selectedFile, setSelectedFile] = useState<AdminMediaFile>(adminMediaFiles[0]);
+  const { data: liveMedia } = useMediaFiles();
+  const createMediaMutation = useCreateMediaRecord();
+  const deleteMediaMutation = useDeleteMediaRecord();
+
+  const mediaList: AdminMediaFile[] = (liveMedia && liveMedia.length > 0)
+    ? liveMedia.map((m) => ({
+        id: m.id,
+        title: m.title,
+        filename: m.filename,
+        format: (m.format as AdminMediaFile["format"]) || "WEBP",
+        size: formatBytes(m.size_bytes || 0),
+        dimensions: m.dimensions || "—",
+        folder: m.folder || "Company Images",
+        uploadedDate: m.created_at ? new Date(m.created_at).toLocaleDateString() : "Recent",
+        uploadedBy: m.uploaded_by || "Admin",
+        url: m.public_url,
+        thumbnail: m.public_url,
+        altText: m.alt_text || m.title,
+        caption: m.caption || "",
+        tags: m.tags || ["upload"],
+      }))
+    : adminMediaFiles;
+
+  const [selectedId, setSelectedId] = useState<string>("");
+  const selectedFile = mediaList.find((f) => f.id === selectedId) || mediaList[0] || adminMediaFiles[0];
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState("all");
@@ -83,46 +112,69 @@ function AdminMediaPage() {
         if (file.type.startsWith("image/")) {
           toast.loading(`Converting ${file.name} to High-Quality WebP...`, { id: file.name });
           const res = await convertImageToWebP(file, { quality: 0.92 });
-          toast.success(
-            `Converted & uploaded ${res.name} (High-Quality WebP • ${res.savedPercentage}% smaller)`,
-            { id: file.name }
-          );
+          let publicUrl = res.dataUrl;
+          const storagePath = `media/${Date.now()}-${res.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
 
-          const newItem: AdminMediaFile = {
-            id: `med-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+          if (supabase) {
+            try {
+              const uploadRes = await supabase.storage.from("media").upload(storagePath, res.blob, {
+                contentType: "image/webp",
+                upsert: true,
+              });
+              if (!uploadRes.error) {
+                const pub = supabase.storage.from("media").getPublicUrl(storagePath);
+                if (pub.data?.publicUrl) publicUrl = pub.data.publicUrl;
+              }
+            } catch (e) {
+              console.warn("Storage upload failed, using dataUrl fallback:", e);
+            }
+          }
+
+          await createMediaMutation.mutateAsync({
             title: res.name,
             filename: res.name,
             format: "WEBP",
-            size: formatBytes(res.webpSize),
+            size_bytes: res.webpSize,
             dimensions: `${res.width} × ${res.height}`,
             folder: "Company Images",
-            uploadedDate: "Just now",
-            uploadedBy: "Admin",
-            url: res.dataUrl,
-            thumbnail: res.dataUrl,
-            altText: res.name.replace(".webp", ""),
+            storage_path: storagePath,
+            public_url: publicUrl,
+            alt_text: res.name.replace(".webp", ""),
             caption: `WebP converted asset (${formatBytes(res.webpSize)})`,
             tags: ["webp", "image", "upload"],
-          };
-          newItems.push(newItem);
+            uploaded_by: "Admin",
+          });
+
+          toast.success(
+            `Converted & saved ${res.name} (High-Quality WebP • ${res.savedPercentage}% smaller)`,
+            { id: file.name }
+          );
         } else {
-          // Non-image files (documents, videos)
-          const newItem: AdminMediaFile = {
-            id: `med-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+          const storagePath = `media/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+          let publicUrl = "";
+
+          if (supabase) {
+            try {
+              const uploadRes = await supabase.storage.from("media").upload(storagePath, file, { upsert: true });
+              if (!uploadRes.error) {
+                const pub = supabase.storage.from("media").getPublicUrl(storagePath);
+                if (pub.data?.publicUrl) publicUrl = pub.data.publicUrl;
+              }
+            } catch (e) {
+              console.warn("Storage upload failed:", e);
+            }
+          }
+
+          await createMediaMutation.mutateAsync({
             title: file.name,
             filename: file.name,
             format: file.name.split(".").pop()?.toUpperCase() || "FILE",
-            size: formatBytes(file.size),
+            size_bytes: file.size,
             folder: file.type.startsWith("video/") ? "Videos" : "Documents",
-            uploadedDate: "Just now",
-            uploadedBy: "Admin",
-            url: URL.createObjectURL(file),
-            thumbnail: selectedFile.thumbnail,
-            altText: file.name,
-            caption: "Uploaded file",
-            tags: ["upload"],
-          };
-          newItems.push(newItem);
+            storage_path: storagePath,
+            public_url: publicUrl || URL.createObjectURL(file),
+            uploaded_by: "Admin",
+          });
           toast.success(`Uploaded ${file.name}`);
         }
       } catch (err) {
@@ -625,11 +677,16 @@ function AdminMediaPage() {
             </div>
 
             <button
-              onClick={() => {
-                setMediaList((prev) => prev.filter((f) => f.id !== selectedFile.id));
-                toast.success(`Deleted ${selectedFile.filename}`);
-                const remaining = mediaList.filter((f) => f.id !== selectedFile.id);
-                if (remaining.length > 0) setSelectedFile(remaining[0]);
+              type="button"
+              onClick={async () => {
+                if (confirm(`Are you sure you want to delete ${selectedFile.filename}?`)) {
+                  try {
+                    await deleteMediaMutation.mutateAsync({ id: selectedFile.id });
+                    toast.success(`Deleted ${selectedFile.filename}`);
+                  } catch {
+                    toast.error("Failed to delete media asset");
+                  }
+                }
               }}
               className="w-full py-2 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-bold flex items-center justify-center gap-1.5 transition"
             >

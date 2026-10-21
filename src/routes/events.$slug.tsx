@@ -24,10 +24,47 @@ import { toast } from "sonner";
 import avatar1 from "@/assets/avatar-1.webp";
 import avatar2 from "@/assets/avatar-2.webp";
 import avatar3 from "@/assets/avatar-3.webp";
+import { fetchEventBySlug } from "@/lib/server-fns";
+import { useRegisterForEvent } from "@/hooks/use-admin-data";
 
 export const Route = createFileRoute("/events/$slug")({
-  head: ({ params }) => {
-    const event = allAdminEvents.find((e) => e.slug === params.slug);
+  loader: async ({ params }) => {
+    try {
+      const dbEvent = await fetchEventBySlug({ data: { slug: params.slug } });
+      if (dbEvent) {
+        const d = new Date(dbEvent.date_time);
+        const monthBadge = isNaN(d.getTime()) ? "OCT" : d.toLocaleString("en-US", { month: "short" }).toUpperCase();
+        const dayBadge = isNaN(d.getTime()) ? "15" : String(d.getDate()).padStart(2, "0");
+        const formattedDate = isNaN(d.getTime()) ? dbEvent.date_time : d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+        const formattedTime = isNaN(d.getTime()) ? "" : d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+
+        const event: AdminEvent = {
+          id: dbEvent.id,
+          title: dbEvent.title,
+          slug: dbEvent.slug,
+          type: (dbEvent.type as "Online" | "In-person") || "Online",
+          dateTime: dbEvent.date_time,
+          formattedDate,
+          formattedTime,
+          monthBadge,
+          dayBadge,
+          location: dbEvent.location || "Online",
+          registeredCount: 45,
+          maxAttendees: dbEvent.max_attendees || undefined,
+          status: (dbEvent.status || "Published") as "Published" | "Draft" | "Past",
+          image: dbEvent.image_url || allAdminEvents[0].image,
+          isUpcoming: !isNaN(d.getTime()) ? d >= new Date() : true,
+        };
+        return { event };
+      }
+    } catch {
+      // Fallback to static
+    }
+    const staticEvent = allAdminEvents.find((e) => e.slug === params.slug) || allAdminEvents[0];
+    return { event: staticEvent };
+  },
+  head: ({ loaderData }) => {
+    const event = loaderData?.event;
     return {
       meta: [
         { title: `${event ? event.title : "Event Details"} | Russell Technologies` },
@@ -44,11 +81,13 @@ export const Route = createFileRoute("/events/$slug")({
 });
 
 export function PublicEventDetailPage() {
-  const { slug } = Route.useParams();
-  const event = allAdminEvents.find((e) => e.slug === slug) || allAdminEvents[0];
+  const { event } = Route.useLoaderData();
 
   const [registered, setRegistered] = useState(false);
+  const [registering, setRegistering] = useState(false);
   const [formData, setFormData] = useState({ name: "", email: "", org: "", role: "" });
+
+  const registerMutation = useRegisterForEvent();
 
   if (!event) {
     return (
@@ -62,14 +101,29 @@ export function PublicEventDetailPage() {
     );
   }
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.email) {
+    if (!formData.name.trim() || !formData.email.trim()) {
       toast.error("Please fill in your name and email.");
       return;
     }
-    setRegistered(true);
-    toast.success("RSVP Confirmed! We sent a confirmation email to " + formData.email);
+    setRegistering(true);
+    try {
+      await registerMutation.mutateAsync({
+        eventId: event.id,
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        organization: formData.org || undefined,
+        role: formData.role || undefined,
+      });
+      setRegistered(true);
+      toast.success("RSVP Confirmed! We sent a confirmation email to " + formData.email);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Registration failed. Please try again.";
+      toast.error(msg);
+    } finally {
+      setRegistering(false);
+    }
   };
 
   return (
@@ -309,8 +363,8 @@ export function PublicEventDetailPage() {
                     </div>
                   </div>
 
-                  <Button type="submit" className="w-full text-xs font-bold py-2.5">
-                    Confirm Free RSVP
+                  <Button type="submit" disabled={registering} className="w-full text-xs font-bold py-2.5 disabled:opacity-50">
+                    {registering ? "Registering…" : "Confirm Free RSVP"}
                   </Button>
 
                   <div className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground pt-1">

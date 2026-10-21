@@ -61,6 +61,14 @@ import {
   adminAuditLogs,
   type AdminAuditEntry,
 } from "@/lib/admin-data";
+import {
+  useDashboardStats,
+  useBlogPosts,
+  useEvents,
+  useSubscribers,
+  useAuditLogs,
+  useCreateAuditLog,
+} from "@/hooks/use-admin-data";
 import { meta } from "@/components/site/blocks";
 import { exportToCsv, exportToPdf } from "@/lib/export-utils";
 import { toast } from "sonner";
@@ -71,8 +79,63 @@ export const Route = createFileRoute("/admin/")({
 });
 
 function AdminDashboardPage() {
-  const recentPosts = adminBlogPosts.slice(0, 5);
-  const recentSubscribers = adminSubscribers.slice(0, 3);
+  const { data: stats } = useDashboardStats();
+  const { data: livePosts } = useBlogPosts({ limit: 5 });
+  const { data: liveEvents } = useEvents({ limit: 4 });
+  const { data: liveSubs } = useSubscribers({ limit: 3 });
+  const { data: liveAuditLogs } = useAuditLogs({ limit: 20 });
+  const createAuditMutation = useCreateAuditLog();
+
+  const recentPosts = (livePosts && livePosts.length > 0)
+    ? livePosts.map((p) => ({
+        id: p.id,
+        title: p.title,
+        slug: p.slug,
+        category: p.category,
+        author: p.author_name ?? "Admin",
+        date: p.created_at ? new Date(p.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Recently",
+        status: p.status as "Published" | "Draft" | "Scheduled",
+        views: p.views ?? 0,
+        commentsCount: 0,
+        featured: p.featured ?? false,
+        image: p.image_url || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80",
+        excerpt: p.excerpt ?? "",
+      }))
+    : adminBlogPosts.slice(0, 5);
+
+  const recentSubscribers = (liveSubs && liveSubs.length > 0)
+    ? liveSubs.map((s) => ({
+        id: s.id,
+        name: s.name || s.email.split("@")[0],
+        email: s.email,
+        status: s.status,
+        dateSubscribed: s.subscribed_at ? new Date(s.subscribed_at).toLocaleDateString() : "Recent",
+        source: s.source ?? "Website",
+        initials: (s.name || s.email).slice(0, 2).toUpperCase(),
+      }))
+    : adminSubscribers.slice(0, 3);
+
+  const displayEvents = (liveEvents && liveEvents.length > 0)
+    ? liveEvents.map((e) => {
+        const d = new Date(e.date_time);
+        return {
+          id: e.id,
+          title: e.title,
+          slug: e.slug,
+          type: e.type,
+          status: e.status,
+          date: isNaN(d.getTime()) ? e.date_time : d.toLocaleDateString(),
+          time: isNaN(d.getTime()) ? "" : d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          monthBadge: isNaN(d.getTime()) ? "OCT" : d.toLocaleDateString("en-US", { month: "short" }).toUpperCase(),
+          dayBadge: isNaN(d.getTime()) ? "15" : d.getDate().toString().padStart(2, "0"),
+          location: e.location ?? "Online",
+          registeredCount: e.registered_count ?? 0,
+          maxAttendees: e.max_attendees ?? 100,
+          image: e.image_url || "",
+          description: e.description ?? "",
+        };
+      })
+    : upcomingAdminEvents;
 
   // System Health State
   const [pingLatency, setPingLatency] = useState(24);
@@ -81,7 +144,24 @@ function AdminDashboardPage() {
   const [lastCheckTime, setLastCheckTime] = useState("Just now");
 
   // Activity & Audit Log State
-  const [auditLogs, setAuditLogs] = useState<AdminAuditEntry[]>(adminAuditLogs);
+  const auditLogs: AdminAuditEntry[] = (liveAuditLogs && liveAuditLogs.length > 0)
+    ? liveAuditLogs.map((log) => ({
+        id: log.id,
+        action: log.action,
+        category: (log.category as AdminAuditEntry["category"]) || "System",
+        target: log.target || "System",
+        user: {
+          name: log.user_name || "Admin",
+          role: (log.user_role as AdminAuditEntry["user"]["role"]) || "Super Admin",
+        },
+        timestamp: log.created_at ? new Date(log.created_at).toLocaleString() : "Recently",
+        relativeTime: "Recently",
+        status: (log.status as AdminAuditEntry["status"]) || "Success",
+        ipAddress: log.ip_address || "127.0.0.1",
+        details: log.details || "",
+      }))
+    : adminAuditLogs;
+
   const [auditCategory, setAuditCategory] = useState<string>("all");
   const [auditSearch, setAuditSearch] = useState("");
   const [selectedAuditLog, setSelectedAuditLog] = useState<AdminAuditEntry | null>(null);
@@ -108,23 +188,17 @@ function AdminDashboardPage() {
       toast.success("All System Diagnostics Passed (100%)", {
         description: "14 Admin routes OK • WebP asset cache OK • Nitro SSR Hydration OK • TLS 1.3 Active",
       });
-      // Prepend an audit entry
-      const newEntry: AdminAuditEntry = {
-        id: `log-${Date.now()}`,
+      // Persist to Supabase audit log
+      createAuditMutation.mutate({
         action: "Executed System Diagnostic Suite",
         category: "System",
         target: "Vercel / Nitro Runtime Health Check",
-        user: {
-          name: "Admin User",
-          role: "Super Admin",
-        },
-        timestamp: "Today, Just now",
-        relativeTime: "Just now",
+        user_name: "Admin User",
+        user_role: "Super Admin",
+        ip_address: "197.210.44.12",
         status: "Success",
-        ipAddress: "197.210.44.12",
         details: "Full diagnostic check completed with zero latency anomalies or bundle errors.",
-      };
-      setAuditLogs((prev) => [newEntry, ...prev]);
+      });
     }, 1200);
   };
 
@@ -317,7 +391,7 @@ function AdminDashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
         <AdminStatCard
           title="Total Blog Posts"
-          value={adminOverviewMetrics.totalBlogPosts.value}
+          value={stats?.totalBlogPosts != null ? String(stats.totalBlogPosts) : adminOverviewMetrics.totalBlogPosts.value}
           change={adminOverviewMetrics.totalBlogPosts.change}
           changeType={adminOverviewMetrics.totalBlogPosts.changeType}
           note={adminOverviewMetrics.totalBlogPosts.note}
@@ -337,7 +411,7 @@ function AdminDashboardPage() {
         />
         <AdminStatCard
           title="Newsletter Signups"
-          value="1,250"
+          value={stats?.totalSubscribers != null ? String(stats.totalSubscribers) : "1,250"}
           change={adminOverviewMetrics.newsletterSignups.change}
           changeType={adminOverviewMetrics.newsletterSignups.changeType}
           note={adminOverviewMetrics.newsletterSignups.note}
@@ -347,7 +421,7 @@ function AdminDashboardPage() {
         />
         <AdminStatCard
           title="Events"
-          value={adminOverviewMetrics.events.value}
+          value={stats?.totalEvents != null ? String(stats.totalEvents) : adminOverviewMetrics.events.value}
           change={adminOverviewMetrics.events.change}
           changeType={adminOverviewMetrics.events.changeType}
           note={adminOverviewMetrics.events.note}
@@ -521,7 +595,7 @@ function AdminDashboardPage() {
             </div>
 
             <div className="space-y-3.5">
-              {upcomingAdminEvents.map((evt) => (
+              {displayEvents.map((evt) => (
                 <div
                   key={evt.id}
                   className="p-3 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700 hover:bg-slate-50/50 dark:hover:bg-slate-800/40 flex items-start gap-3 transition"
@@ -576,7 +650,9 @@ function AdminDashboardPage() {
             <div className="flex items-end justify-between p-4 rounded-xl bg-slate-50 dark:bg-[#080f1e] border border-slate-100 dark:border-slate-800 mb-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">1,250</span>
+                  <span className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                    {stats?.totalSubscribers != null ? stats.totalSubscribers.toLocaleString() : "1,250"}
+                  </span>
                   <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full">↑ 18%</span>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Total subscribers</p>

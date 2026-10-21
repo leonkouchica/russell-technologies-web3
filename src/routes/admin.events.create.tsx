@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useRef } from "react";
 import {
   ChevronLeft,
@@ -29,6 +29,7 @@ import {
   Users,
   Settings,
   Sparkles,
+  Loader2,
 } from "lucide-react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import artistImg from "@/assets/artist.webp";
@@ -36,6 +37,7 @@ import meetingImg from "@/assets/meeting.webp";
 import studentImg from "@/assets/student.webp";
 import { meta } from "@/components/site/blocks";
 import { convertImageToWebP } from "@/lib/image-utils";
+import { useCreateEvent } from "@/hooks/use-admin-data";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/events/create")({
@@ -44,6 +46,10 @@ export const Route = createFileRoute("/admin/events/create")({
 });
 
 export function AdminCreateEventPage() {
+  const navigate = useNavigate();
+  const createEventMutation = useCreateEvent();
+  const [isSaving, setIsSaving] = useState(false);
+
   const [eventTitle, setEventTitle] = useState("");
   const [shortDesc, setShortDesc] = useState("");
   const [fullDesc, setFullDesc] = useState("");
@@ -116,6 +122,36 @@ export function AdminCreateEventPage() {
     setTags(tags.filter((tag) => tag !== t));
   };
 
+  const handleSaveEvent = async (targetStatus: "Draft" | "Published") => {
+    if (!eventTitle.trim()) {
+      toast.error("Please enter an event title");
+      return;
+    }
+    const finalSlug = eventTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+    try {
+      setIsSaving(true);
+      await createEventMutation.mutateAsync({
+        title: eventTitle,
+        slug: finalSlug,
+        type: eventFormat,
+        status: targetStatus,
+        date_time: new Date().toISOString(),
+        location: venue || (eventFormat === "Online" ? "Online (Virtual)" : "Lagos, Nigeria"),
+        registered_count: 0,
+        max_attendees: maxAttendees ? parseInt(maxAttendees, 10) : 100,
+        image_url: bannerImage || undefined,
+        description: fullDesc || shortDesc || eventTitle,
+      });
+      toast.success(targetStatus === "Published" ? "Event published successfully!" : "Draft event saved!");
+      navigate({ to: "/admin/events" });
+    } catch (err: unknown) {
+      toast.error("Failed to save event: " + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <AdminLayout>
       {/* BREADCRUMBS & TOP ACTIONS */}
@@ -130,21 +166,27 @@ export function AdminCreateEventPage() {
 
         <div className="flex items-center gap-2.5">
           <button
-            onClick={() => alert("Event draft saved")}
-            className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-2xs transition"
+            type="button"
+            disabled={isSaving}
+            onClick={() => handleSaveEvent("Draft")}
+            className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-2xs transition disabled:opacity-50"
           >
-            Save Draft
+            {isSaving ? "Saving..." : "Save Draft"}
           </button>
           <button
+            type="button"
             className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-2xs transition flex items-center gap-1.5"
           >
             <Eye className="size-3.5 text-slate-500" /> Preview
           </button>
           <button
-            onClick={() => setPublished(true)}
-            className="px-5 py-2 rounded-xl bg-[#0062ff] hover:bg-blue-600 text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5"
+            type="button"
+            disabled={isSaving}
+            onClick={() => handleSaveEvent("Published")}
+            className="px-5 py-2 rounded-xl bg-[#0062ff] hover:bg-blue-600 text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5 disabled:opacity-50"
           >
-            <Send className="size-3.5" /> Publish Event
+            {isSaving ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}
+            <span>Publish Event</span>
           </button>
         </div>
       </div>

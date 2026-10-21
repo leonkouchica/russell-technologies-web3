@@ -22,6 +22,8 @@ import {
   AdminCategoryBadge,
 } from "@/components/admin/AdminComponents";
 import { adminBlogPosts, AdminBlogPost } from "@/lib/admin-data";
+import { useBlogPosts, useDeleteBlogPost } from "@/hooks/use-admin-data";
+import { toast } from "sonner";
 import { meta } from "@/components/site/blocks";
 
 export const Route = createFileRoute("/admin/blog-posts/")({
@@ -30,6 +32,29 @@ export const Route = createFileRoute("/admin/blog-posts/")({
 });
 
 function AdminBlogPostsPage() {
+  const { data: livePosts, isLoading } = useBlogPosts();
+  const deleteMutation = useDeleteBlogPost();
+
+  const allPosts: AdminBlogPost[] = (livePosts && livePosts.length > 0)
+    ? livePosts.map((p) => ({
+        id: p.id,
+        title: p.title,
+        slug: p.slug,
+        category: p.category,
+        author: {
+          name: p.author_name || "Admin",
+          avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
+        },
+        date: p.created_at ? new Date(p.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Recently",
+        status: (p.status as AdminBlogPost["status"]) || "Draft",
+        views: p.views ?? 0,
+        commentsCount: 0,
+        featured: p.featured ?? false,
+        image: p.image_url || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80",
+        excerpt: p.excerpt ?? "",
+      }))
+    : adminBlogPosts;
+
   const [activeTab, setActiveTab] = useState<"all" | "published" | "draft" | "scheduled" | "trash">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -38,10 +63,10 @@ function AdminBlogPostsPage() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const statusCounts = {
-    all: adminBlogPosts.length,
-    published: adminBlogPosts.filter((p) => p.status === "Published").length,
-    draft: adminBlogPosts.filter((p) => p.status === "Draft").length,
-    scheduled: adminBlogPosts.filter((p) => p.status === "Scheduled").length,
+    all: allPosts.length,
+    published: allPosts.filter((p) => p.status === "Published").length,
+    draft: allPosts.filter((p) => p.status === "Draft").length,
+    scheduled: allPosts.filter((p) => p.status === "Scheduled").length,
     trash: 0,
   };
 
@@ -57,9 +82,9 @@ function AdminBlogPostsPage() {
     { name: "Tips & Guides", count: 1 },
   ];
 
-  const popularPosts = adminBlogPosts.slice(0, 3);
+  const popularPosts = allPosts.slice(0, 3);
 
-  const filteredPosts = adminBlogPosts.filter((post) => {
+  const filteredPosts = allPosts.filter((post) => {
     if (activeTab === "published" && post.status !== "Published") return false;
     if (activeTab === "draft" && post.status !== "Draft") return false;
     if (activeTab === "scheduled" && post.status !== "Scheduled") return false;
@@ -335,6 +360,23 @@ function AdminBlogPostsPage() {
                             >
                               <Edit className="size-4" />
                             </Link>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                if (confirm(`Are you sure you want to delete "${post.title}"?`)) {
+                                  try {
+                                    await deleteMutation.mutateAsync({ id: post.id });
+                                    toast.success(`Deleted "${post.title}"`);
+                                  } catch {
+                                    toast.error("Failed to delete post");
+                                  }
+                                }
+                              }}
+                              className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                              title="Delete post"
+                            >
+                              <Trash2 className="size-4" />
+                            </button>
                             <button
                               className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition"
                               title="Duplicate"

@@ -19,6 +19,7 @@ import {
   Settings,
   CalendarDays,
   Globe,
+  Trash2,
 } from "lucide-react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import {
@@ -26,6 +27,8 @@ import {
   AdminStatusBadge,
 } from "@/components/admin/AdminComponents";
 import { allAdminEvents, AdminEvent } from "@/lib/admin-data";
+import { useEvents, useDeleteEvent } from "@/hooks/use-admin-data";
+import { toast } from "sonner";
 import { meta } from "@/components/site/blocks";
 
 export const Route = createFileRoute("/admin/events/")({
@@ -34,13 +37,40 @@ export const Route = createFileRoute("/admin/events/")({
 });
 
 function AdminEventsPage() {
+  const { data: liveEvents } = useEvents();
+  const deleteEventMutation = useDeleteEvent();
+
+  const events: AdminEvent[] = (liveEvents && liveEvents.length > 0)
+    ? liveEvents.map((e) => {
+        const d = new Date(e.date_time);
+        const valid = !isNaN(d.getTime());
+        return {
+          id: e.id,
+          title: e.title,
+          slug: e.slug,
+          type: (e.type as AdminEvent["type"]) || "Online",
+          status: (e.status as AdminEvent["status"]) || "Published",
+          dateTime: valid ? d.toLocaleString() : e.date_time,
+          formattedDate: valid ? d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : e.date_time,
+          formattedTime: valid ? d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "",
+          monthBadge: valid ? d.toLocaleDateString("en-US", { month: "short" }).toUpperCase() : "OCT",
+          dayBadge: valid ? d.getDate().toString().padStart(2, "0") : "15",
+          location: e.location || "Online",
+          registeredCount: e.registered_count ?? 0,
+          maxAttendees: e.max_attendees ?? 100,
+          image: e.image_url || allAdminEvents[0]?.image || "",
+          description: e.description || "",
+        };
+      })
+    : allAdminEvents;
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
-  const [selectedEvent, setSelectedEvent] = useState<AdminEvent>(allAdminEvents[0]);
+  const [selectedEvent, setSelectedEvent] = useState<AdminEvent>(() => events[0] || allAdminEvents[0]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  const filteredEvents = allAdminEvents.filter((evt) => {
+  const filteredEvents = events.filter((evt) => {
     if (selectedType !== "all" && evt.type !== selectedType) return false;
     if (selectedStatus !== "all" && evt.status !== selectedStatus) return false;
     if (searchQuery.trim() !== "") {
@@ -278,6 +308,23 @@ function AdminEventsPage() {
                             >
                               <Edit className="size-4" />
                             </Link>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                if (confirm(`Are you sure you want to delete event "${evt.title}"?`)) {
+                                  try {
+                                    await deleteEventMutation.mutateAsync({ id: evt.id });
+                                    toast.success(`Deleted event "${evt.title}"`);
+                                  } catch {
+                                    toast.error("Failed to delete event");
+                                  }
+                                }
+                              }}
+                              className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                              title="Delete"
+                            >
+                              <Trash2 className="size-4" />
+                            </button>
                             <button
                               className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition"
                               title="Duplicate"

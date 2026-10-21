@@ -23,6 +23,8 @@ import {
   AdminRoleBadge,
 } from "@/components/admin/AdminComponents";
 import { adminUsers, AdminUser } from "@/lib/admin-data";
+import { useAdminUsers, useUpdateAdminUser } from "@/hooks/use-admin-data";
+import { toast } from "sonner";
 import { meta } from "@/components/site/blocks";
 
 export const Route = createFileRoute("/admin/users")({
@@ -31,13 +33,29 @@ export const Route = createFileRoute("/admin/users")({
 });
 
 function AdminUsersPage() {
+  const { data: liveProfiles } = useAdminUsers();
+  const updateProfileMutation = useUpdateAdminUser();
+
+  const users: AdminUser[] = (liveProfiles && liveProfiles.length > 0)
+    ? liveProfiles.map((p) => ({
+        id: p.id,
+        name: p.name || "Admin User",
+        email: p.name ? `${p.name.toLowerCase().replace(/\s+/g, ".")}@russelltechnologies.org` : "admin@russelltechnologies.org",
+        role: (p.role as AdminUser["role"]) || "Editor",
+        status: (p.status as AdminUser["status"]) || "Active",
+        lastLogin: p.last_login ? new Date(p.last_login).toLocaleString() : "Recently",
+        avatar: p.avatar_url || adminUsers[0]?.avatar || "",
+        initials: p.initials || "AU",
+      }))
+    : adminUsers;
+
   const [activeTab, setActiveTab] = useState<"users" | "roles">("users");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  const filteredUsers = adminUsers.filter((u) => {
+  const filteredUsers = users.filter((u) => {
     if (selectedRole !== "all" && u.role !== selectedRole) return false;
     if (selectedStatus !== "all" && u.status !== selectedStatus) return false;
     if (searchQuery.trim() !== "") {
@@ -82,7 +100,7 @@ function AdminUsersPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <AdminStatCard
           title="Total Users"
-          value={12}
+          value={users.length}
           change="+20%"
           note="+2 this month"
           icon={Users2}
@@ -101,7 +119,7 @@ function AdminUsersPage() {
         />
         <AdminStatCard
           title="Active Users"
-          value={10}
+          value={users.filter((u) => u.status === "Active").length}
           change="+25%"
           note="vs last month"
           icon={UserCheck}
@@ -110,7 +128,7 @@ function AdminUsersPage() {
         />
         <AdminStatCard
           title="Inactive Users"
-          value={2}
+          value={users.filter((u) => u.status === "Inactive").length}
           change="0%"
           changeType="neutral"
           note="vs last month"

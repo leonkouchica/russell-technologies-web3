@@ -39,6 +39,7 @@ import {
 } from "lucide-react";
 import logoImg from "@/assets/logo.webp";
 import { adminCurrentUser } from "@/lib/admin-data";
+import { supabase } from "@/lib/supabase";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -65,6 +66,41 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const navigate = useNavigate();
+  const [currentUser, setCurrentUser] = useState(adminCurrentUser);
+
+  useEffect(() => {
+    if (supabase) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) {
+          setCurrentUser((prev) => ({
+            ...prev,
+            email: session.user.email ?? prev.email,
+            name: session.user.user_metadata?.name ?? session.user.email?.split("@")[0] ?? prev.name,
+          }));
+        }
+      });
+
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (session?.user) {
+          setCurrentUser((prev) => ({
+            ...prev,
+            email: session.user.email ?? prev.email,
+            name: session.user.user_metadata?.name ?? session.user.email?.split("@")[0] ?? prev.name,
+          }));
+        }
+      });
+
+      return () => subscription.unsubscribe();
+    }
+  }, []);
+
+  const handleSignOut = async () => {
+    setUserDropdownOpen(false);
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
+    navigate({ to: "/admin/login" });
+  };
 
   // Dark Mode State
   const [isDark, setIsDark] = useState<boolean>(() => {
@@ -529,13 +565,13 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 className="flex items-center gap-2.5 p-1 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 transition"
               >
                 <img
-                  src={adminCurrentUser.avatar}
-                  alt={adminCurrentUser.name}
+                  src={currentUser.avatar}
+                  alt={currentUser.name}
                   className="size-9 rounded-full object-cover ring-2 ring-blue-500/20"
                 />
                 <div className="hidden sm:flex flex-col text-left">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-100 leading-tight">{adminCurrentUser.name}</span>
-                  <span className="text-[11px] text-slate-400 dark:text-slate-400 font-medium leading-tight">{adminCurrentUser.title}</span>
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-100 leading-tight">{currentUser.name}</span>
+                  <span className="text-[11px] text-slate-400 dark:text-slate-400 font-medium leading-tight">{currentUser.title}</span>
                 </div>
                 <ChevronDown className="size-4 text-slate-400 hidden sm:block" />
               </button>
@@ -548,10 +584,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                   />
                   <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-white dark:bg-[#0c1527] shadow-xl border border-slate-100 dark:border-slate-800 py-2 z-30 animate-in fade-in zoom-in-95 duration-100">
                     <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800">
-                      <p className="text-sm font-bold text-slate-800 dark:text-white">{adminCurrentUser.name}</p>
-                      <p className="text-xs text-slate-400 truncate">{adminCurrentUser.email}</p>
+                      <p className="text-sm font-bold text-slate-800 dark:text-white">{currentUser.name}</p>
+                      <p className="text-xs text-slate-400 truncate">{currentUser.email}</p>
                       <span className="inline-block mt-1 text-[10px] font-semibold bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 px-2 py-0.5 rounded-full">
-                        {adminCurrentUser.role}
+                        {currentUser.role}
                       </span>
                     </div>
                     <Link
@@ -576,13 +612,13 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                       <Settings className="size-4 text-slate-400" /> System Settings
                     </Link>
                     <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
-                    <Link
-                      to="/admin/login"
-                      onClick={() => setUserDropdownOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60"
+                    <button
+                      type="button"
+                      onClick={handleSignOut}
+                      className="w-full flex items-center gap-2 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 text-left"
                     >
                       <LogOut className="size-4 text-slate-400" /> Lock Screen / Sign Out
-                    </Link>
+                    </button>
                     <Link
                       to="/"
                       onClick={() => setUserDropdownOpen(false)}

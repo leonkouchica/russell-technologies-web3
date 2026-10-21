@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Building,
   Mail,
@@ -29,6 +29,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { useSettings, useSaveSettings } from "@/hooks/use-admin-data";
 import { meta } from "@/components/site/blocks";
 import { convertImageToWebP } from "@/lib/image-utils";
 import { toast } from "sonner";
@@ -231,10 +232,57 @@ function AdminSettingsPage() {
   const [maintenanceAllowAdmins, setMaintenanceAllowAdmins] = useState(true);
 
   /* ── Save handler ────────────────────────────────────── */
-  const handleSave = () => {
-    toast.success("Settings saved successfully!", {
-      description: `${tabs.find((t) => t.id === activeTab)?.label} preferences have been updated.`,
-    });
+  const { data: allSettings } = useSettings();
+  const saveMutation = useSaveSettings();
+
+  useEffect(() => {
+    if (allSettings && Array.isArray(allSettings)) {
+      allSettings.forEach((s) => {
+        const val = s.value as Record<string, unknown>;
+        if (!val) return;
+        if (s.key === "general") {
+          if (val.siteName) setSiteName(String(val.siteName));
+          if (val.tagline) setTagline(String(val.tagline));
+          if (val.timezone) setTimezone(String(val.timezone));
+          if (val.language) setLanguage(String(val.language));
+          if (val.primaryColor) setPrimaryColor(String(val.primaryColor));
+        } else if (s.key === "contact") {
+          if (val.contactEmail) setContactEmail(String(val.contactEmail));
+          if (val.supportEmail) setSupportEmail(String(val.supportEmail));
+          if (val.phoneNumber) setPhoneNumber(String(val.phoneNumber));
+          if (val.address) setAddress(String(val.address));
+        } else if (s.key === "social") {
+          setSocialLinks((prev) => ({ ...prev, ...(val as typeof socialLinks) }));
+        } else if (s.key === "seo") {
+          if (val.metaTitleTemplate) setMetaTitleTemplate(String(val.metaTitleTemplate));
+          if (val.metaDescription) setMetaDescription(String(val.metaDescription));
+          if (val.ogImageUrl) setOgImageUrl(String(val.ogImageUrl));
+        } else if (s.key === "maintenance") {
+          if (val.maintenanceMode !== undefined) setMaintenanceMode(Boolean(val.maintenanceMode));
+          if (val.maintenanceMessage) setMaintenanceMessage(String(val.maintenanceMessage));
+        }
+      });
+    }
+  }, [allSettings]);
+
+  const handleSave = async () => {
+    try {
+      let payload: Record<string, unknown> = {};
+      if (activeTab === "general") payload = { siteName, tagline, timezone, language, primaryColor };
+      else if (activeTab === "contact") payload = { contactEmail, supportEmail, phoneNumber, address };
+      else if (activeTab === "social") payload = { ...socialLinks };
+      else if (activeTab === "seo") payload = { metaTitleTemplate, metaDescription, ogImageUrl, gaTrackingId, canonicalDomain, robotsIndex };
+      else if (activeTab === "notifications") payload = { notifyNewContact, notifyNewComment, notifyNewSubscriber, notifyNewUser, notifyWeeklyDigest };
+      else if (activeTab === "integrations") payload = { smtpHost, smtpPort, smtpUser, smtpPass, mailchimpKey, webhookUrl };
+      else if (activeTab === "maintenance") payload = { maintenanceMode, maintenanceMessage, maintenanceAllowAdmins };
+
+      await saveMutation.mutateAsync({ key: activeTab, value: payload });
+      toast.success("Settings saved successfully!", {
+        description: `${tabs.find((t) => t.id === activeTab)?.label} preferences persisted to Supabase database.`,
+      });
+    } catch (err: unknown) {
+      toast.error("Failed to save settings: " + (err instanceof Error ? err.message : String(err)));
+    }
   };
 
   /* ── Render ──────────────────────────────────────────── */

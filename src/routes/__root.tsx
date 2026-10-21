@@ -15,6 +15,7 @@ import appCss from "../styles.css?url";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { Toaster } from "@/components/ui/sonner";
+import { trackPageView } from "@/lib/server-fns";
 
 function NotFoundComponent() {
   return (
@@ -116,7 +117,22 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const routerState = useRouterState();
-  const isAdmin = routerState?.location?.pathname?.startsWith("/admin");
+  const pathname = routerState?.location?.pathname ?? "/";
+  const isAdmin = pathname.startsWith("/admin");
+
+  useEffect(() => {
+    if (!isAdmin && typeof window !== "undefined") {
+      trackPageView({
+        data: {
+          path: pathname,
+          referrer: document.referrer || undefined,
+          user_agent: navigator.userAgent || undefined,
+        },
+      }).catch(() => {
+        // non-blocking analytics
+      });
+    }
+  }, [pathname, isAdmin]);
 
   return (
     <QueryClientProvider client={queryClient}>

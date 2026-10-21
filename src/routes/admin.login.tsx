@@ -16,6 +16,7 @@ import {
 import logo from "@/assets/logo.webp";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/admin/login")({
   head: () => ({
@@ -29,35 +30,62 @@ export const Route = createFileRoute("/admin/login")({
 
 export function AdminLoginPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("admin@russelltechnologies.org");
-  const [password, setPassword] = useState("admin2026");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [resetSent, setResetSent] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     if (!email || !password) {
       toast.error("Please provide both email and password.");
       return;
     }
 
     setLoading(true);
+    try {
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    setTimeout(() => {
+      if (authError) {
+        setError(authError.message);
+        toast.error(authError.message);
+        setLoading(false);
+        return;
+      }
+
+      if (data.session) {
+        toast.success("Authentication successful! Welcome back, Admin.");
+        navigate({ to: "/admin" });
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "An unexpected error occurred.";
+      setError(msg);
+      toast.error(msg);
+    } finally {
       setLoading(false);
-      toast.success("Authentication successful! Welcome back, Admin.");
-      navigate({ to: "/admin" });
-    }, 600);
+    }
   };
 
-  const handleForgotSubmit = (e: React.FormEvent) => {
+  const handleForgotSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!forgotEmail) {
       toast.error("Enter your administrator email.");
+      return;
+    }
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+      redirectTo: `${window.location.origin}/admin/login`,
+    });
+    if (resetError) {
+      toast.error(resetError.message);
       return;
     }
     setResetSent(true);

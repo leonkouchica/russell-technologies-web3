@@ -20,6 +20,7 @@ import { allAdminEvents, type AdminEvent } from "@/lib/admin-data";
 import { Button } from "@/components/ui/button";
 import { meta } from "@/components/site/blocks";
 import { toast } from "sonner";
+import { useEvents, usePublicSubscribe } from "@/hooks/use-admin-data";
 
 export const Route = createFileRoute("/events/")({
   head: () =>
@@ -33,9 +34,46 @@ export const Route = createFileRoute("/events/")({
 export function PublicEventsPage() {
   const [activeTab, setActiveTab] = useState<"all" | "Online" | "In-person">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [newsletterSubmitting, setNewsletterSubmitting] = useState(false);
+
+  const { data: liveEvents } = useEvents({ status: "Published" });
+  const subscribeMutation = usePublicSubscribe();
+
+  const eventsList: AdminEvent[] = useMemo(() => {
+    if (!liveEvents?.length) return allAdminEvents;
+    const mapped: AdminEvent[] = liveEvents.map((e) => {
+      const d = new Date(e.date_time);
+      const monthBadge = isNaN(d.getTime()) ? "OCT" : d.toLocaleString("en-US", { month: "short" }).toUpperCase();
+      const dayBadge = isNaN(d.getTime()) ? "15" : String(d.getDate()).padStart(2, "0");
+      const formattedDate = isNaN(d.getTime()) ? e.date_time : d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+      const formattedTime = isNaN(d.getTime()) ? "" : d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+
+      return {
+        id: e.id,
+        title: e.title,
+        slug: e.slug,
+        type: (e.type as "Online" | "In-person") || "Online",
+        dateTime: e.date_time,
+        formattedDate,
+        formattedTime,
+        monthBadge,
+        dayBadge,
+        location: e.location || "Online",
+        registeredCount: 45,
+        maxAttendees: e.max_attendees || undefined,
+        status: (e.status || "Published") as "Published" | "Draft" | "Past",
+        image: e.image_url || allAdminEvents[0].image,
+        isUpcoming: !isNaN(d.getTime()) ? d >= new Date() : true,
+      };
+    });
+    const seen = new Set(mapped.map((e) => e.slug));
+    const leftovers = allAdminEvents.filter((e) => !seen.has(e.slug));
+    return [...mapped, ...leftovers];
+  }, [liveEvents]);
 
   const filteredEvents = useMemo(() => {
-    return allAdminEvents.filter((evt) => {
+    return eventsList.filter((evt) => {
       const matchesTab = activeTab === "all" ? true : evt.type === activeTab;
       const matchesQuery =
         searchQuery.trim() === "" ||
@@ -43,10 +81,10 @@ export function PublicEventsPage() {
         evt.location.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesTab && matchesQuery;
     });
-  }, [activeTab, searchQuery]);
+  }, [eventsList, activeTab, searchQuery]);
 
   // Featured event (first published upcoming event)
-  const featuredEvent = allAdminEvents.find((e) => e.isUpcoming && e.status === "Published") || allAdminEvents[0];
+  const featuredEvent = eventsList.find((e) => e.isUpcoming && e.status === "Published") || eventsList[0];
 
   return (
     <div className="min-h-screen bg-slate-50/60 pb-20">
@@ -282,20 +320,36 @@ export function PublicEventsPage() {
           </p>
 
           <form
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
-              toast.success("You're subscribed to Russell Technologies event alerts!");
+              if (!/^\S+@\S+\.\S+$/.test(newsletterEmail)) {
+                toast.error("Please enter a valid email address.");
+                return;
+              }
+              setNewsletterSubmitting(true);
+              try {
+                await subscribeMutation.mutateAsync({ email: newsletterEmail });
+                toast.success("You're subscribed to Russell Technologies event alerts!");
+                setNewsletterEmail("");
+              } catch (err: unknown) {
+                const msg = err instanceof Error ? err.message : "Failed to subscribe.";
+                toast.error(msg);
+              } finally {
+                setNewsletterSubmitting(false);
+              }
             }}
             className="mx-auto mt-5 flex max-w-md gap-2"
           >
             <input
               type="email"
               required
+              value={newsletterEmail}
+              onChange={(e) => setNewsletterEmail(e.target.value)}
               placeholder="Enter your corporate email"
               className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary"
             />
-            <Button type="submit" className="font-semibold text-xs px-5">
-              Subscribe
+            <Button type="submit" disabled={newsletterSubmitting} className="font-semibold text-xs px-5 disabled:opacity-50">
+              {newsletterSubmitting ? "Subscribing…" : "Subscribe"}
             </Button>
           </form>
         </div>

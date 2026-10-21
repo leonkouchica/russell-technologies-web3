@@ -13,8 +13,14 @@ import {
   Download,
   FileSpreadsheet,
   Printer,
+  Loader2,
 } from "lucide-react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import {
+  useContacts,
+  useReplyToContact,
+  useDeleteContact,
+} from "@/hooks/use-admin-data";
 import { meta } from "@/components/site/blocks";
 import { exportToCsv, exportToPdf } from "@/lib/export-utils";
 import { toast } from "sonner";
@@ -73,16 +79,50 @@ const mockInquiries: Inquiry[] = [
 ];
 
 function AdminContactsPage() {
-  const [inquiries, setInquiries] = useState<Inquiry[]>(mockInquiries);
-  const [selectedInquiry, setSelectedInquiry] = useState<Inquiry>(mockInquiries[0]);
-  const [replyText, setReplyText] = useState("");
+  const { data: liveContacts } = useContacts();
+  const replyMutation = useReplyToContact();
+  const deleteMutation = useDeleteContact();
 
-  const handleSendReply = () => {
-    toast.success(`Reply sent to ${selectedInquiry.email}`);
-    setReplyText("");
-    setInquiries(
-      inquiries.map((i) => (i.id === selectedInquiry.id ? { ...i, status: "Replied" } : i))
-    );
+  const inquiries: Inquiry[] = (liveContacts && liveContacts.length > 0)
+    ? liveContacts.map((c) => ({
+        id: c.id,
+        name: c.name,
+        email: c.email,
+        phone: "+234 800 000 0000",
+        service: c.service || "General Inquiry",
+        budget: c.budget || "Not Specified",
+        message: c.message || "",
+        date: c.created_at ? new Date(c.created_at).toLocaleString() : "Recently",
+        status: (c.status === "Responded" ? "Replied" : (c.status as Inquiry["status"])) || "New",
+      }))
+    : mockInquiries;
+
+  const [selectedId, setSelectedId] = useState<string>("");
+  const selectedInquiry = inquiries.find((i) => i.id === selectedId) || inquiries[0] || mockInquiries[0];
+  const [replyText, setReplyText] = useState("");
+  const [isReplying, setIsReplying] = useState(false);
+
+  const handleSendReply = async () => {
+    if (!replyText.trim()) {
+      toast.error("Please enter a reply message");
+      return;
+    }
+    try {
+      setIsReplying(true);
+      toast.loading(`Delivering response to ${selectedInquiry.email} via ZeptoMail...`, { id: "reply-email" });
+      await replyMutation.mutateAsync({
+        id: selectedInquiry.id,
+        email: selectedInquiry.email,
+        name: selectedInquiry.name,
+        replyMessage: replyText,
+      });
+      toast.success(`Reply delivered to ${selectedInquiry.email} via ZeptoMail!`, { id: "reply-email" });
+      setReplyText("");
+    } catch (err: unknown) {
+      toast.error("Failed to send reply: " + (err instanceof Error ? err.message : String(err)), { id: "reply-email" });
+    } finally {
+      setIsReplying(false);
+    }
   };
 
   const handleExportCsv = () => {
@@ -167,7 +207,7 @@ function AdminContactsPage() {
           {inquiries.map((item) => (
             <div
               key={item.id}
-              onClick={() => setSelectedInquiry(item)}
+              onClick={() => setSelectedId(item.id)}
               className={`p-4 rounded-2xl border transition cursor-pointer bg-white ${
                 selectedInquiry.id === item.id
                   ? "border-blue-600 ring-2 ring-blue-500/10 shadow-md"
@@ -243,10 +283,13 @@ function AdminContactsPage() {
               />
               <div className="flex justify-end gap-2">
                 <button
+                  type="button"
+                  disabled={isReplying}
                   onClick={handleSendReply}
-                  className="px-5 py-2 bg-[#0062ff] hover:bg-blue-600 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5"
+                  className="px-5 py-2 bg-[#0062ff] hover:bg-blue-600 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 disabled:opacity-50"
                 >
-                  <Reply className="size-3.5" /> Send Reply
+                  {isReplying ? <Loader2 className="size-3.5 animate-spin" /> : <Reply className="size-3.5" />}
+                  <span>{isReplying ? "Delivering..." : "Send Reply"}</span>
                 </button>
               </div>
             </div>
