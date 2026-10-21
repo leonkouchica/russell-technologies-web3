@@ -38,7 +38,9 @@ import {
   updateMediaRecord,
   deleteMediaRecord,
   fetchAdminUsers,
+  createAdminUser,
   updateAdminUser,
+  deleteAdminUser,
   fetchSettings,
   saveSettings,
   fetchAuditLogs,
@@ -361,10 +363,26 @@ export function useAdminUsers(filters?: { role?: string }) {
   });
 }
 
+export function useCreateAdminUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: Parameters<typeof createAdminUser>[0]["data"]) => createAdminUser({ data: input }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }),
+  });
+}
+
 export function useUpdateAdminUser() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: Parameters<typeof updateAdminUser>[0]["data"]) => updateAdminUser({ data: input }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }),
+  });
+}
+
+export function useDeleteAdminUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: Parameters<typeof deleteAdminUser>[0]["data"]) => deleteAdminUser({ data: input }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }),
   });
 }

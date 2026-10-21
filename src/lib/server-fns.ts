@@ -766,8 +766,80 @@ export const fetchAdminUsers = createServerFn({ method: "GET" })
     return users ?? [];
   });
 
+export const createAdminUser = createServerFn({ method: "POST" })
+  .validator(
+    (input: {
+      name: string;
+      email: string;
+      role?: string;
+      status?: string;
+      title?: string;
+      password?: string;
+    }) => input,
+  )
+  .handler(async ({ data }) => {
+    const sb = getSupabaseAdmin();
+    let userId = crypto.randomUUID();
+
+    if (data.password && data.password.trim().length >= 6) {
+      try {
+        const { data: authUser, error: authErr } = await sb.auth.admin.createUser({
+          email: data.email,
+          password: data.password,
+          email_confirm: true,
+          user_metadata: { name: data.name, role: data.role || "Editor" },
+        });
+        if (authUser?.user?.id) {
+          userId = authUser.user.id;
+        } else if (authErr) {
+          console.warn("Supabase Auth admin createUser notice:", authErr.message);
+        }
+      } catch (err) {
+        console.warn("Could not create auth user, proceeding with admin profile:", err);
+      }
+    }
+
+    const initials = data.name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+
+    const newRecord = {
+      id: userId,
+      name: data.name,
+      email: data.email,
+      role: data.role || "Editor",
+      status: data.status || "Active",
+      title: data.title || "Team Member",
+      initials,
+      avatar_url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+      last_login: new Date().toISOString(),
+    };
+
+    const { data: profile, error } = await sb
+      .from("admin_profiles")
+      .upsert(newRecord)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+
+    await sb.from("audit_logs").insert({
+      action: "Created Admin User",
+      category: "Security",
+      target: data.name,
+      user_name: "Super Admin",
+      status: "Success",
+      details: `Created user ${data.email} with role ${data.role || "Editor"}`,
+    });
+
+    return profile;
+  });
+
 export const updateAdminUser = createServerFn({ method: "POST" })
-  .validator((input: { id: string; role?: string; status?: string; name?: string; title?: string }) => input)
+  .validator((input: { id: string; role?: string; status?: string; name?: string; title?: string; email?: string }) => input)
   .handler(async ({ data }) => {
     const sb = getSupabaseAdmin();
     const { id, ...updates } = data;
@@ -782,6 +854,31 @@ export const updateAdminUser = createServerFn({ method: "POST" })
       details: updates.role ? `Role changed to ${updates.role}` : undefined,
     });
     return user;
+  });
+
+export const deleteAdminUser = createServerFn({ method: "POST" })
+  .validator((input: { id: string; name?: string }) => input)
+  .handler(async ({ data }) => {
+    const sb = getSupabaseAdmin();
+
+    try {
+      await sb.auth.admin.deleteUser(data.id);
+    } catch {
+      // User might not exist in auth.users
+    }
+
+    const { error } = await sb.from("admin_profiles").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+
+    await sb.from("audit_logs").insert({
+      action: "Deleted Admin User",
+      category: "Security",
+      target: data.name ?? data.id,
+      user_name: "Super Admin",
+      status: "Success",
+    });
+
+    return { success: true };
   });
 
 // ─── Settings ──────────────────────────────────────────────────────────────

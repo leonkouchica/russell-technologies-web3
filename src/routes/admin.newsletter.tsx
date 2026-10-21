@@ -858,28 +858,49 @@ export function AdminNewsletterPage() {
               <span className="font-bold">{selectedSubs.length} subscribers selected</span>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => {
-                    setSubscribers(
-                      subscribers.map((s) =>
-                        selectedSubs.includes(s.id) ? { ...s, status: "Unsubscribed" } : s,
-                      ),
-                    );
-                    setSelectedSubs([]);
-                    toast.success("Updated selected subscribers to Unsubscribed");
+                  type="button"
+                  disabled={updateSubMutation.isPending || deleteSubMutation.isPending}
+                  onClick={async () => {
+                    try {
+                      await Promise.all(
+                        selectedSubs.map((id) =>
+                          updateSubMutation.mutateAsync({ id, status: "Unsubscribed" })
+                        )
+                      );
+                      toast.success(`Updated ${selectedSubs.length} subscriber(s) to Unsubscribed`);
+                      setSelectedSubs([]);
+                    } catch {
+                      toast.error("Failed to update status for selected subscribers");
+                    }
                   }}
-                  className="px-3 py-1 bg-white border border-blue-200 text-blue-700 rounded-lg font-bold hover:bg-blue-100 transition"
+                  className="px-3 py-1 bg-white border border-blue-200 text-blue-700 rounded-lg font-bold hover:bg-blue-100 transition disabled:opacity-50 cursor-pointer"
                 >
-                  Unsubscribe
+                  {updateSubMutation.isPending ? "Updating..." : "Unsubscribe"}
                 </button>
                 <button
-                  onClick={() => {
-                    setSubscribers(subscribers.filter((s) => !selectedSubs.includes(s.id)));
-                    setSelectedSubs([]);
-                    toast.success("Deleted selected subscribers");
+                  type="button"
+                  disabled={deleteSubMutation.isPending || updateSubMutation.isPending}
+                  onClick={async () => {
+                    if (
+                      !window.confirm(
+                        `Are you sure you want to permanently delete ${selectedSubs.length} selected subscriber(s)?`
+                      )
+                    ) {
+                      return;
+                    }
+                    try {
+                      await Promise.all(
+                        selectedSubs.map((id) => deleteSubMutation.mutateAsync({ id }))
+                      );
+                      toast.success(`Deleted ${selectedSubs.length} subscriber(s)`);
+                      setSelectedSubs([]);
+                    } catch {
+                      toast.error("Failed to delete selected subscribers");
+                    }
                   }}
-                  className="px-3 py-1 bg-rose-600 text-white rounded-lg font-bold hover:bg-rose-700 transition"
+                  className="px-3 py-1 bg-rose-600 text-white rounded-lg font-bold hover:bg-rose-700 transition disabled:opacity-50 cursor-pointer"
                 >
-                  Delete Selected
+                  {deleteSubMutation.isPending ? "Deleting..." : "Delete Selected"}
                 </button>
               </div>
             </div>

@@ -355,6 +355,7 @@ function AdminBlogPostsPage() {
                           <div className="flex items-center justify-end gap-1">
                             <Link
                               to="/admin/blog-posts/create"
+                              search={{ id: post.id }}
                               className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
                               title="Edit post"
                             >

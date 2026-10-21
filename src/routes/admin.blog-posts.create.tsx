@@ -28,20 +28,47 @@ import {
 } from "lucide-react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import studentImg from "@/assets/student.webp";
-import { adminCurrentUser } from "@/lib/admin-data";
+import { adminCurrentUser, adminBlogPosts } from "@/lib/admin-data";
 import { meta } from "@/components/site/blocks";
 import { convertImageToWebP } from "@/lib/image-utils";
-import { useCreateBlogPost } from "@/hooks/use-admin-data";
+import {
+  useCreateBlogPost,
+  useUpdateBlogPost,
+  useBlogPost,
+} from "@/hooks/use-admin-data";
 import { toast } from "sonner";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/admin/blog-posts/create")({
-  head: () => meta("Create New Blog Post — Admin Dashboard", "Draft and publish new blog articles."),
+  validateSearch: (search: Record<string, unknown>): { id?: string } => ({
+    id: typeof search.id === "string" ? search.id : undefined,
+  }),
+  head: () => meta("Blog Post Editor — Admin Dashboard", "Draft, publish, and edit blog articles."),
   component: AdminCreateBlogPostPage,
 });
 
 export function AdminCreateBlogPostPage() {
   const navigate = useNavigate();
+  const search = Route.useSearch();
+  const editPostId = search.id;
+  const isEditMode = Boolean(editPostId);
+
+  const { data: dbPost } = useBlogPost(editPostId || "");
+  const fallbackPost = editPostId ? adminBlogPosts.find((p) => p.id === editPostId) : undefined;
+  const postToEdit = dbPost || (fallbackPost ? {
+    id: fallbackPost.id,
+    title: fallbackPost.title,
+    slug: fallbackPost.slug,
+    category: fallbackPost.category,
+    status: fallbackPost.status,
+    excerpt: fallbackPost.excerpt,
+    content: fallbackPost.excerpt,
+    image_url: fallbackPost.image,
+    author_name: fallbackPost.author?.name || "Admin",
+  } : null);
+
   const createMutation = useCreateBlogPost();
+  const updateMutation = useUpdateBlogPost();
   const [isSaving, setIsSaving] = useState(false);
 
   const [title, setTitle] = useState("");
@@ -63,6 +90,24 @@ export function AdminCreateBlogPostPage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Pre-fill fields when editing an existing post
+  useEffect(() => {
+    if (postToEdit) {
+      setTitle(postToEdit.title || "");
+      setSlug(postToEdit.slug || "");
+      setContent(postToEdit.content || postToEdit.excerpt || "");
+      setCategory(postToEdit.category || "Technology");
+      setStatus(postToEdit.status || "Draft");
+      setExcerpt(postToEdit.excerpt || "");
+      if (postToEdit.image_url) {
+        setFeaturedImage(postToEdit.image_url);
+      }
+      if (postToEdit.author_name) {
+        setAuthor(postToEdit.author_name);
+      }
+    }
+  }, [postToEdit?.id]);
+
   const handleSavePost = async (targetStatus: "Draft" | "Published") => {
     if (!title.trim()) {
       toast.error("Please enter a post title");
@@ -73,17 +118,32 @@ export function AdminCreateBlogPostPage() {
 
     try {
       setIsSaving(true);
-      await createMutation.mutateAsync({
-        title,
-        slug: finalSlug,
-        category: finalCategory,
-        status: targetStatus,
-        excerpt: excerpt || title,
-        content: content || excerpt || title,
-        image_url: featuredImage || undefined,
-        author_name: "Admin User",
-      });
-      toast.success(targetStatus === "Published" ? "Post published successfully!" : "Draft saved successfully!");
+      if (isEditMode && editPostId) {
+        await updateMutation.mutateAsync({
+          id: editPostId,
+          title,
+          slug: finalSlug,
+          category: finalCategory,
+          status: targetStatus,
+          excerpt: excerpt || title,
+          content: content || excerpt || title,
+          image_url: featuredImage || undefined,
+          author_name: author || "Admin User",
+        });
+        toast.success(targetStatus === "Published" ? "Post updated and published!" : "Post changes saved successfully!");
+      } else {
+        await createMutation.mutateAsync({
+          title,
+          slug: finalSlug,
+          category: finalCategory,
+          status: targetStatus,
+          excerpt: excerpt || title,
+          content: content || excerpt || title,
+          image_url: featuredImage || undefined,
+          author_name: "Admin User",
+        });
+        toast.success(targetStatus === "Published" ? "Post published successfully!" : "Draft saved successfully!");
+      }
       navigate({ to: "/admin/blog-posts" });
     } catch (err: unknown) {
       toast.error("Failed to save post: " + (err instanceof Error ? err.message : String(err)));
@@ -138,20 +198,20 @@ export function AdminCreateBlogPostPage() {
             <ChevronLeft className="size-4" /> Blog Posts
           </Link>
           <span className="text-slate-300">/</span>
-          <span className="text-slate-800">Create New Post</span>
+          <span className="text-slate-800">{isEditMode ? "Edit Post" : "Create New Post"}</span>
         </div>
 
           <button
             type="button"
             disabled={isSaving}
             onClick={() => handleSavePost("Draft")}
-            className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-2xs transition disabled:opacity-50"
+            className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-2xs transition disabled:opacity-50 cursor-pointer"
           >
-            {isSaving ? "Saving..." : "Save Draft"}
+            {isSaving ? "Saving..." : isEditMode ? "Save as Draft" : "Save Draft"}
           </button>
           <button
             type="button"
-            className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-2xs transition flex items-center gap-1.5"
+            className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold shadow-2xs transition flex items-center gap-1.5 cursor-pointer"
           >
             <Eye className="size-3.5 text-slate-500" /> Preview
           </button>
@@ -159,10 +219,10 @@ export function AdminCreateBlogPostPage() {
             type="button"
             disabled={isSaving}
             onClick={() => handleSavePost("Published")}
-            className="px-5 py-2 rounded-xl bg-[#0062ff] hover:bg-blue-600 text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5 disabled:opacity-50"
+            className="px-5 py-2 rounded-xl bg-[#0062ff] hover:bg-blue-600 text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
           >
             {isSaving ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}
-            <span>Publish Post</span>
+            <span>{isEditMode ? "Update Post" : "Publish Post"}</span>
           </button>
       </div>
 
@@ -171,10 +231,12 @@ export function AdminCreateBlogPostPage() {
         <div className="w-1.5 h-8 bg-blue-600 rounded-full mt-1 shrink-0" />
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Create New Blog Post
+            {isEditMode ? "Edit Blog Post" : "Create New Blog Post"}
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
-            Write, customize, and publish your post. Share valuable insights with your audience.
+            {isEditMode
+              ? "Update article content, media, tags, and publishing status."
+              : "Write, customize, and publish your post. Share valuable insights with your audience."}
           </p>
         </div>
       </div>
