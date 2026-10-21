@@ -25,6 +25,8 @@ const topics = [
   [Settings, "Technology", "Digital solutions & tools", "blue"], [Building2, "Business Growth", "Strategy, people & impact", "orange"],
 ] as const;
 
+const popularPosts: Post[] = [posts[0], posts[1], posts[2] ?? posts[0]].filter((p): p is Post => Boolean(p));
+
 function Card({ p }: { p: Post }) {
   return (
     <Link to="/blog/$slug" params={{ slug: p.slug }} className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-card transition hover:-translate-y-0.5">
