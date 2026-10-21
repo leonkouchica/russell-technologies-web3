@@ -252,7 +252,7 @@ function AdminSettingsPage() {
           if (val.phoneNumber) setPhoneNumber(String(val.phoneNumber));
           if (val.address) setAddress(String(val.address));
         } else if (s.key === "social") {
-          setSocialLinks((prev) => ({ ...prev, ...(val as typeof socialLinks) }));
+          setSocials((prev) => ({ ...prev, ...(val as typeof socials) }));
         } else if (s.key === "seo") {
           if (val.metaTitleTemplate) setMetaTitleTemplate(String(val.metaTitleTemplate));
           if (val.metaDescription) setMetaDescription(String(val.metaDescription));
@@ -270,7 +270,7 @@ function AdminSettingsPage() {
       let payload: Record<string, unknown> = {};
       if (activeTab === "general") payload = { siteName, tagline, timezone, language, primaryColor };
       else if (activeTab === "contact") payload = { contactEmail, supportEmail, phoneNumber, address };
-      else if (activeTab === "social") payload = { ...socialLinks };
+      else if (activeTab === "social") payload = { ...socials };
       else if (activeTab === "seo") payload = { metaTitleTemplate, metaDescription, ogImageUrl, gaTrackingId, canonicalDomain, robotsIndex };
       else if (activeTab === "notifications") payload = { notifyNewContact, notifyNewComment, notifyNewSubscriber, notifyNewUser, notifyWeeklyDigest };
       else if (activeTab === "integrations") payload = { smtpHost, smtpPort, smtpUser, smtpPass, mailchimpKey, webhookUrl };
